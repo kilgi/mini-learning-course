@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#edf2eb" />
+  <title>Sign in | Course Library</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/supabase-config.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/login.js" defer></script>
+</head>
+<body>
+  <div class="auth-shell">
+    <header class="auth-header">
+      <a class="site-title" href="login.html">Course Library</a>
+    </header>
+    <main class="auth-layout">
+      <section class="auth-intro" aria-labelledby="auth-title">
+        <p class="eyebrow">YOUR LEARNING, SAVED</p>
+        <h1 id="auth-title">Pick up where you left off.</h1>
+        <p>Sign in to keep your course progress linked to your account across devices.</p>
+      </section>
+      <section class="auth-panel" aria-label="Account access">
+        <div class="auth-mode-switch" role="group" aria-label="Account action">
+          <button type="button" data-auth-mode="signin" aria-pressed="true">Sign in</button>
+          <button type="button" data-auth-mode="signup" aria-pressed="false">Create account</button>
+        </div>
+        <p class="auth-message" id="auth-message" role="status" hidden></p>
+        <form id="auth-form">
+          <label class="auth-field" id="name-field" for="display-name" hidden>
+            Name
+            <input id="display-name" name="name" type="text" autocomplete="name" />
+          </label>
+          <label class="auth-field" for="email">
+            Email
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </label>
+          <label class="auth-field" for="password">
+            Password
+            <input id="password" name="password" type="password" autocomplete="current-password" minlength="10" required />
+          </label>
+          <button class="auth-submit" id="auth-submit" type="submit">Sign in</button>
+        </form>
+        <p class="config-message" id="config-message" role="status" hidden>
+          Secure sign-in is not connected yet. Add your Supabase project URL and public anon key in <code>js/supabase-config.js</code>, then run the setup SQL in <code>docs/supabase-setup.md</code>.
+        </p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

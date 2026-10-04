@@ -3,9 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>First Commit</title>
+  <meta name="theme-color" content="#edf2eb" />
+  <title>Course Library</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/supabase-config.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/storage.js" defer></script>
+  <script src="js/app.js" defer></script>
 </head>
-<body>
-  <h1>first commit</h1>
+<body class="auth-pending">
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="site-title" href="index.html">Course Library</a>
+      <div class="account-summary">
+        <span class="account-email" data-account-email></span>
+        <button class="sign-out-button" type="button" data-sign-out>Sign out</button>
+      </div>
+    </header>
+
+    <main class="catalog-layout">
+      <section class="catalog-heading" aria-labelledby="catalog-title">
+        <p class="eyebrow">COURSE CATALOG</p>
+        <h1 id="catalog-title">Find a topic to explore.</h1>
+        <p class="catalog-subtitle">Choose a course and take it one lesson at a time.</p>
+        <div class="course-grid" id="course-list" aria-live="polite"></div>
+        <p class="status-message" id="catalog-status" role="status" hidden></p>
+      </section>
+
+    </main>
+  </div>
 </body>
 </html>
