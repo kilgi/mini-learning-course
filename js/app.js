@@ -5,7 +5,7 @@ function lessonPath(lesson) {
 	return `${lesson.id}.html`;
 }
 
-function renderCourseCard(course, index, completedLessonIds) {
+function renderCourseCard(course, index, userId, completedLessonIds, feedback = "") {
 	const card = document.createElement("article");
 	const number = document.createElement("p");
 	const title = document.createElement("h2");
@@ -15,6 +15,11 @@ function renderCourseCard(course, index, completedLessonIds) {
 	const progressBar = document.createElement("div");
 	const progressFill = document.createElement("span");
 	const completionStatus = document.createElement("p");
+	const feedbackForm = document.createElement("form");
+	const feedbackLabel = document.createElement("label");
+	const feedbackInput = document.createElement("textarea");
+	const feedbackSubmit = document.createElement("button");
+	const feedbackStatus = document.createElement("p");
 	const lessonsDisclosure = document.createElement("details");
 	const lessonsSummary = document.createElement("summary");
 	const lessonList = document.createElement("ol");
@@ -25,7 +30,8 @@ function renderCourseCard(course, index, completedLessonIds) {
 	const totalLessons = course.lessons.length;
 	const completedCount = course.lessons.filter((lesson) => completedLessons.has(lesson.id)).length;
 	const progressPercent = totalLessons === 0 ? 0 : Math.round((completedCount / totalLessons) * 100);
-	const isComplete = totalLessons > 0 && completedCount === totalLessons;
+	const allLessonsComplete = totalLessons > 0 && completedCount === totalLessons;
+	const isComplete = allLessonsComplete && Boolean(feedback.trim());
 
 	card.className = "course-card";
 	card.style.setProperty("--order", String(index));
@@ -47,9 +53,51 @@ function renderCourseCard(course, index, completedLessonIds) {
 	progressFill.style.width = `${progressPercent}%`;
 	progressBar.append(progressFill);
 	completionStatus.className = "course-completion-status";
-	completionStatus.textContent = "Course completed";
-	completionStatus.hidden = !isComplete;
+	completionStatus.textContent = isComplete
+		? "Course completed"
+		: "All lessons complete. Submit feedback to finish this course.";
+	completionStatus.hidden = !allLessonsComplete;
 	progress.append(progressLabel, progressBar, completionStatus);
+	feedbackForm.className = "course-feedback";
+	feedbackForm.hidden = !allLessonsComplete;
+	feedbackLabel.className = "course-feedback-label";
+	feedbackLabel.textContent = "Required course feedback";
+	feedbackInput.className = "course-feedback-input";
+	feedbackInput.name = "feedback";
+	feedbackInput.rows = 3;
+	feedbackInput.maxLength = 2000;
+	feedbackInput.required = true;
+	feedbackInput.value = feedback;
+	feedbackInput.placeholder = "What worked well, and what could be improved?";
+	feedbackLabel.append(feedbackInput);
+	feedbackSubmit.className = "course-feedback-submit";
+	feedbackSubmit.type = "submit";
+	feedbackSubmit.textContent = feedback ? "Update feedback" : "Submit feedback";
+	feedbackStatus.className = "course-feedback-status";
+	feedbackStatus.setAttribute("role", "status");
+	feedbackForm.append(feedbackLabel, feedbackSubmit, feedbackStatus);
+	feedbackForm.addEventListener("submit", async (event) => {
+		event.preventDefault();
+		feedbackStatus.textContent = "";
+		if (!feedbackInput.value.trim()) {
+			feedbackStatus.textContent = "Feedback cannot be blank.";
+			feedbackInput.focus();
+			return;
+		}
+		feedbackSubmit.disabled = true;
+		feedbackSubmit.textContent = "Saving...";
+		try {
+			await saveCourseFeedback(userId, course.id, feedbackInput.value);
+			completionStatus.textContent = "Course completed";
+			feedbackSubmit.textContent = "Update feedback";
+			feedbackStatus.textContent = "Feedback saved. Course completed.";
+		} catch {
+			feedbackStatus.textContent = "Feedback could not be saved. Check your connection and try again.";
+			feedbackSubmit.textContent = feedback ? "Update feedback" : "Submit feedback";
+		} finally {
+			feedbackSubmit.disabled = false;
+		}
+	});
 	lessonsDisclosure.className = "course-lessons";
 	lessonsSummary.append(title);
 	lessonList.className = "course-lesson-list";
@@ -72,12 +120,13 @@ function renderCourseCard(course, index, completedLessonIds) {
 	count.className = "course-lesson-count";
 	count.textContent = `${course.lessons.length} lessons`;
 	link.className = "course-link";
-	const nextLesson = course.lessons.find((lesson) => !completedLessons.has(lesson.id)) || course.lessons[0];
+	const nextLesson = course.lessons.find((lesson) => !completedLessons.has(lesson.id));
 	link.href = nextLesson ? lessonPath(nextLesson) : "#";
 	link.textContent = "Continue Learning";
+	link.hidden = allLessonsComplete;
 
 	footer.append(count, link);
-	card.append(number, lessonsDisclosure, description, progress, footer);
+	card.append(number, lessonsDisclosure, description, progress, feedbackForm, footer);
 	return card;
 }
 
@@ -90,14 +139,20 @@ async function initializeCatalog() {
 
 	document.body.classList.remove("auth-pending");
 	showAccount(user);
+	const course = await getCourseContent(COURSE);
 
-	COURSES.forEach((course, index) => {
-		courseListElement.append(renderCourseCard(course, index, []));
-	});
+	courseListElement.append(renderCourseCard(course, 0, user.id, []));
 
 	try {
-		const completions = await Promise.all(COURSES.map((course) => getCompletedLessons(user.id, course.id)));
-		courseListElement.replaceChildren(...COURSES.map((course, index) => renderCourseCard(course, index, completions[index])));
+		const completions = await getCompletedLessons(user.id, course.id);
+		let feedback = "";
+		try {
+			feedback = await getCourseFeedback(user.id, course.id);
+		} catch {
+			catalogStatus.textContent = "Feedback storage is unavailable. Run the course feedback SQL in docs/supabase-setup.md before completing the course.";
+			catalogStatus.hidden = false;
+		}
+		courseListElement.replaceChildren(renderCourseCard(course, 0, user.id, completions, feedback));
 	} catch {
 		catalogStatus.textContent = "Saved progress is unavailable. Showing 0% until it can be synced.";
 		catalogStatus.hidden = false;

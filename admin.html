@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#edf2eb" />
+  <title>Course administration</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/supabase-config.js" defer></script>
+  <script src="js/admin.js" defer></script>
+</head>
+<body>
+  <div class="admin-shell">
+    <header class="site-header">
+      <a class="site-title" href="index.html">Course Library</a>
+      <div class="account-summary" id="admin-account" hidden>
+        <span class="account-email" id="admin-email"></span>
+        <button class="sign-out-button" id="admin-sign-out" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <p class="admin-status" id="admin-status" role="status" aria-live="polite" hidden></p>
+      <section class="admin-login" id="admin-login" aria-labelledby="admin-login-title">
+        <p class="eyebrow">RESTRICTED ACCESS</p>
+        <h1 id="admin-login-title">Course administration</h1>
+        <p class="admin-intro">Sign in with the authorized administrator account.</p>
+        <form id="admin-login-form" class="admin-panel">
+          <label class="auth-field" for="admin-login-email">
+            Email
+            <input id="admin-login-email" name="email" type="email" autocomplete="username" value="admin@gmail.com" required />
+          </label>
+          <label class="auth-field" for="admin-login-password">
+            Password
+            <input id="admin-login-password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="auth-submit" id="admin-login-submit" type="submit">Sign in</button>
+        </form>
+      </section>
+
+      <section class="admin-workspace" id="admin-workspace" hidden aria-labelledby="admin-title">
+        <div class="admin-heading">
+          <div>
+            <p class="eyebrow">ADMINISTRATION</p>
+            <h1 id="admin-title">Manage course</h1>
+          </div>
+          <a class="admin-back-link" href="index.html">View course library</a>
+        </div>
+
+        <section class="admin-panel" aria-labelledby="content-title">
+          <div class="admin-section-heading">
+            <div>
+              <h2 id="content-title">Course content</h2>
+              <p>Course and lesson titles, summaries, and lesson sections.</p>
+            </div>
+          </div>
+          <label class="admin-editor-label" for="course-content-editor">Course content JSON</label>
+          <textarea id="course-content-editor" class="admin-editor" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          <div class="admin-actions">
+            <button class="auth-submit admin-save" id="save-course" type="button">Save course changes</button>
+          </div>
+        </section>
+
+        <section class="admin-panel admin-danger-zone" aria-labelledby="progress-title">
+          <div class="admin-section-heading">
+            <div>
+              <h2 id="progress-title">Student progress</h2>
+              <p>Permanently remove all saved lesson completion records for this course.</p>
+            </div>
+          </div>
+          <button class="admin-reset-button" id="reset-progress" type="button">Clear all student progress</button>
+        </section>
+
+      </section>
+    </main>
+  </div>
+</body>
+</html>

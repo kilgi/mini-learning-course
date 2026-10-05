@@ -1,7 +1,4 @@
 const lessonId = document.querySelector("[data-lesson-id]").dataset.lessonId;
-const course = COURSES.find((item) => item.lessons.some((lesson) => lesson.id === lessonId));
-const lessonIndex = course?.lessons.findIndex((item) => item.id === lessonId) ?? -1;
-const lesson = course?.lessons[lessonIndex];
 const lessonStatus = document.querySelector("#lesson-status");
 
 async function initializeLesson() {
@@ -13,6 +10,9 @@ async function initializeLesson() {
 
 	document.body.classList.remove("auth-pending");
 	showAccount(user);
+	const course = await getCourseContent(COURSE);
+	const lessonIndex = course.lessons.findIndex((item) => item.id === lessonId);
+	const lesson = course.lessons[lessonIndex];
 
 	if (!lesson) {
 		document.querySelector("#lesson-title").textContent = "Lesson not found";
@@ -28,6 +28,7 @@ async function initializeLesson() {
 	const nextLink = document.querySelector("#next-lesson");
 	const completeButton = document.querySelector("#complete-lesson");
 	const completedLessonIds = new Set();
+	let hasCourseFeedback = false;
 	completeButton.disabled = true;
 
 	document.title = `${lesson.title} | ${course.title}`;
@@ -73,6 +74,18 @@ async function initializeLesson() {
 		const savedLessonIds = await getCompletedLessons(user.id, course.id);
 		savedLessonIds.forEach((savedLessonId) => completedLessonIds.add(savedLessonId));
 		updateCompletionButton();
+		try {
+			const feedback = await getCourseFeedback(user.id, course.id);
+			hasCourseFeedback = Boolean(feedback.trim());
+		} catch {
+			hasCourseFeedback = false;
+		}
+		if (completedLessonIds.size === course.lessons.length) {
+			lessonStatus.textContent = hasCourseFeedback
+				? "Course completed. You can revisit any lesson."
+				: "All lessons complete. Submit the required feedback from the course library to finish.";
+			lessonStatus.hidden = false;
+		}
 	} catch {
 		lessonStatus.textContent = "Saved progress is unavailable. You can still read this lesson.";
 		lessonStatus.hidden = false;
@@ -87,7 +100,9 @@ async function initializeLesson() {
 			completedLessonIds.add(lesson.id);
 			updateCompletionButton();
 			if (completedLessonIds.size === course.lessons.length) {
-				lessonStatus.textContent = "Course completed. You can keep reading any lesson.";
+				lessonStatus.textContent = hasCourseFeedback
+					? "Course completed. You can revisit any lesson."
+					: "All lessons complete. Submit the required feedback from the course library to finish.";
 			}
 		} catch {
 			completeButton.disabled = false;

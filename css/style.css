@@ -210,6 +210,70 @@ p {
 	font-weight: 800;
 }
 
+.course-feedback[hidden],
+.course-link[hidden] {
+	display: none;
+}
+
+.course-feedback {
+	width: 100%;
+	margin: -2px 0 18px;
+	padding: 15px;
+	border-left: 3px solid var(--coral);
+	background: #f1f3ed;
+}
+
+.course-feedback-label {
+	display: block;
+	color: var(--ink);
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.course-feedback-input {
+	display: block;
+	width: 100%;
+	min-height: 76px;
+	margin: 8px 0 11px;
+	padding: 10px;
+	resize: vertical;
+	border: 1px solid var(--line);
+	border-radius: 0;
+	color: var(--ink);
+	background: #fff;
+	font: inherit;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.course-feedback-submit {
+	min-height: 36px;
+	padding: 0 12px;
+	border: 1px solid var(--green-dark);
+	color: #fff;
+	background: var(--green-dark);
+	font: inherit;
+	font-size: 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.course-feedback-submit:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.course-feedback-status {
+	margin: 9px 0 0;
+	color: var(--green-dark);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.course-feedback-status:empty {
+	display: none;
+}
+
 .course-lessons {
 	width: 100%;
 	margin: 0 0 17px;
@@ -597,6 +661,155 @@ p {
 	display: none;
 }
 
+.admin-shell {
+	width: min(100% - 64px, 1040px);
+	margin: 0 auto;
+}
+
+.admin-main {
+	padding: 58px 0 80px;
+}
+
+.admin-login {
+	width: min(100%, 480px);
+	margin: 7vh auto 0;
+}
+
+.admin-login h1,
+.admin-heading h1 {
+	margin: 13px 0 10px;
+	font-family: var(--serif);
+	font-size: 42px;
+	font-weight: 500;
+	line-height: 1.1;
+}
+
+.admin-intro,
+.admin-section-heading p {
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.admin-panel {
+	margin-top: 25px;
+	padding: 24px;
+	border: 1px solid var(--line);
+	border-top: 3px solid var(--green);
+	background: rgba(249, 250, 246, 0.92);
+}
+
+.admin-workspace[hidden],
+#admin-account[hidden],
+.admin-login[hidden] {
+	display: none;
+}
+
+.admin-heading,
+.admin-section-heading,
+.admin-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 18px;
+}
+
+.admin-heading {
+	align-items: flex-end;
+	margin-bottom: 27px;
+}
+
+.admin-heading h1 {
+	margin-bottom: 0;
+}
+
+.admin-back-link {
+	color: var(--green-dark);
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.admin-section-heading h2 {
+	margin: 0 0 6px;
+	font-family: var(--serif);
+	font-size: 25px;
+	font-weight: 500;
+}
+
+.admin-section-heading p {
+	margin: 0;
+}
+
+.admin-editor-label {
+	display: block;
+	margin: 22px 0 8px;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.admin-editor {
+	display: block;
+	width: 100%;
+	min-height: 420px;
+	resize: vertical;
+	padding: 15px;
+	border: 1px solid var(--line);
+	border-radius: 0;
+	color: var(--ink);
+	background: #fff;
+	font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.admin-actions {
+	justify-content: flex-end;
+	margin-top: 14px;
+}
+
+.admin-save {
+	width: auto;
+	padding: 0 18px;
+}
+
+.admin-danger-zone {
+	margin-top: 20px;
+	border-top-color: var(--coral);
+}
+
+.admin-reset-button {
+	min-height: 42px;
+	margin-top: 20px;
+	padding: 0 14px;
+	border: 1px solid #a94d38;
+	color: #8c3d2d;
+	background: transparent;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.admin-reset-button:hover:not(:disabled) {
+	color: #fff;
+	background: #a94d38;
+}
+
+.admin-status {
+	margin: 17px 0 0;
+	color: var(--green-dark);
+	font-size: 13px;
+	line-height: 1.6;
+}
+
+.admin-status.is-error {
+	color: #8c3d2d;
+}
+
+.admin-status[hidden] {
+	display: none;
+}
+
 :focus-visible {
 	outline: 3px solid var(--coral);
 	outline-offset: 4px;
@@ -667,6 +880,19 @@ p {
 		padding: 48px 0 64px;
 	}
 
+	.admin-shell {
+		width: min(100% - 40px, 600px);
+	}
+
+	.admin-main {
+		padding: 42px 0 60px;
+	}
+
+	.admin-heading {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
 	.auth-intro h1 {
 		font-size: 48px;
 	}
@@ -697,6 +923,20 @@ p {
 
 	.auth-panel {
 		padding: 19px;
+	}
+
+	.admin-panel {
+		padding: 19px;
+	}
+
+	.admin-login h1,
+	.admin-heading h1 {
+		font-size: 36px;
+	}
+
+	.admin-editor {
+		min-height: 340px;
+		font-size: 12px;
 	}
 }
 
