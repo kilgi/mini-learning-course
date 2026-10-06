@@ -28,7 +28,6 @@
           <button type="button" data-auth-mode="signin" aria-pressed="true">Sign in</button>
           <button type="button" data-auth-mode="signup" aria-pressed="false">Create account</button>
         </div>
-        <p class="auth-message" id="auth-message" role="status" hidden></p>
         <form id="auth-form">
           <label class="auth-field" id="name-field" for="display-name" hidden>
             Name
@@ -42,6 +41,7 @@
             Password
             <input id="password" name="password" type="password" enterkeyhint="go" autocomplete="current-password" minlength="10" required />
           </label>
+          <p class="auth-message" id="auth-message" role="alert" hidden></p>
           <button class="auth-submit" id="auth-submit" type="submit">Sign in</button>
         </form>
         <p class="config-message" id="config-message" role="status" hidden>

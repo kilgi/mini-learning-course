@@ -10,6 +10,7 @@
 	--border: #E5E7EB;
 	--panel: #F9FAFB;
 	--red: #B91C1C;
+	--error-background: #FEF2F2;
 	--button-text: #FFFFFF;
 	--ink: var(--navy);
 	--muted: var(--gray);
@@ -968,6 +969,28 @@ p {
 		transition-duration: 0.01ms !important;
 	}
 }
+
+#auth-message {
+	margin: 16px 0;
+	padding: 12px 14px;
+	border: 1px solid var(--red);
+	border-radius: 12px;
+	color: var(--red);
+	background: var(--error-background);
+	font-size: 16px;
+	line-height: 1.5;
+}
+
+#auth-message.auth-message-success {
+	border-color: var(--border);
+	color: var(--navy);
+	background: var(--light-blue);
+}
+
+#auth-message[hidden] {
+	display: none !important;
+}
+
 
 body {
 	min-width: 320px;

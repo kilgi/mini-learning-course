@@ -17,10 +17,29 @@ function setAuthMode(mode) {
 	passwordInput.autocomplete = signingUp ? "new-password" : "current-password";
 	submitButton.textContent = signingUp ? "Create account" : "Sign in";
 	authMessage.hidden = true;
+	authMessage.classList.remove("auth-message-success");
 	modeButtons.forEach((button) => {
 		const selected = button.dataset.authMode === mode;
 		button.setAttribute("aria-pressed", String(selected));
 	});
+}
+
+function getFriendlyAuthError(error) {
+	const message = error?.message?.toLowerCase() || "";
+	if (message.includes("invalid login credentials")) {
+		return "Incorrect email or password. Please try again.";
+	}
+	if (message.includes("email not confirmed")) {
+		return "Please confirm your email first. Check your inbox and spam folder.";
+	}
+	if (
+		error?.status === 429 ||
+		["over_email_send_rate_limit", "over_request_rate_limit", "over_sms_send_rate_limit"].includes(error?.code) ||
+		/rate.?limit|too many (attempts|requests)|only request this after/i.test(message)
+	) {
+		return "Too many attempts. Please wait a minute and try again.";
+	}
+	return "Something went wrong. Please try again.";
 }
 
 modeButtons.forEach((button) => {
@@ -30,6 +49,7 @@ modeButtons.forEach((button) => {
 authForm.addEventListener("submit", async (event) => {
 	event.preventDefault();
 	authMessage.hidden = true;
+	authMessage.classList.remove("auth-message-success");
 	submitButton.disabled = true;
 	submitButton.textContent = authMode === "signup" ? "Creating account..." : "Signing in...";
 
@@ -48,6 +68,7 @@ authForm.addEventListener("submit", async (event) => {
 				return;
 			}
 			authMessage.textContent = "Account created. Check your email to confirm it, then sign in.";
+			authMessage.classList.add("auth-message-success");
 		} else {
 			const { error } = await supabaseClient.auth.signInWithPassword({
 				email: emailInput.value.trim(),
@@ -60,7 +81,11 @@ authForm.addEventListener("submit", async (event) => {
 			return;
 		}
 	} catch (error) {
-		authMessage.textContent = error.message || "Sign in failed. Please try again.";
+		authMessage.textContent = getFriendlyAuthError(error);
+		if (authMode === "signin") {
+			passwordInput.value = "";
+			passwordInput.focus();
+		}
 	}
 
 	authMessage.hidden = false;
