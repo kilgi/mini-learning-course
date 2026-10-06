@@ -13,7 +13,8 @@ async function getCompletedLessons(userId, courseId) {
 		throw error;
 	}
 
-	return data.map((row) => row.lesson_id);
+	const courseLessonIds = new Set(COURSE.lessons.map((lesson) => lesson.id));
+	return [...new Set((data || []).map((row) => row.lesson_id).filter((lessonId) => courseLessonIds.has(lessonId)))];
 }
 
 async function getCourseFeedback(userId, courseId) {
@@ -40,12 +41,12 @@ async function saveCourseFeedback(userId, courseId, feedback) {
 		throw new Error("Supabase is not configured.");
 	}
 
-	const { error } = await supabaseClient.from("course_feedback").upsert({
+	const { error } = await supabaseClient.from("course_feedback").insert({
 		user_id: userId,
 		course_id: courseId,
 		feedback: feedback.trim(),
 		updated_at: new Date().toISOString()
-	}, { onConflict: "user_id,course_id" });
+	});
 
 	if (error) {
 		throw error;

@@ -55,7 +55,7 @@ function validateCourseContent(content) {
 }
 
 async function showAdmin(user) {
-	if (user.email?.toLowerCase() !== "admin@gmail.com") {
+	if (user.app_metadata?.role !== "admin") {
 		await supabaseClient.auth.signOut();
 		throw new Error("This account is not authorized to access administration.");
 	}
@@ -132,8 +132,8 @@ saveButton.addEventListener("click", async () => {
 });
 
 resetButton.addEventListener("click", async () => {
-	const confirmed = window.confirm("Clear all students' saved progress for this course? This cannot be undone.");
-	if (!confirmed) {
+	const confirmation = window.prompt(`Type "${COURSE.title}" to permanently clear all student progress and feedback.`);
+	if (confirmation?.trim() !== COURSE.title) {
 		return;
 	}
 

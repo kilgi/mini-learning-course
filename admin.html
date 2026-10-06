@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#edf2eb" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js; style-src 'self'; img-src 'self'; connect-src 'self' https://cdwxkittegibajvlnkvw.supabase.co wss://cdwxkittegibajvlnkvw.supabase.co" />
   <title>Course administration</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous" defer></script>
   <script src="js/data.js" defer></script>
   <script src="js/supabase-config.js" defer></script>
   <script src="js/admin.js" defer></script>
@@ -30,11 +31,11 @@
         <form id="admin-login-form" class="admin-panel">
           <label class="auth-field" for="admin-login-email">
             Email
-            <input id="admin-login-email" name="email" type="email" autocomplete="username" value="admin@gmail.com" required />
+            <input id="admin-login-email" name="email" type="email" inputmode="email" enterkeyhint="next" autocomplete="username" required />
           </label>
           <label class="auth-field" for="admin-login-password">
             Password
-            <input id="admin-login-password" name="password" type="password" autocomplete="current-password" required />
+            <input id="admin-login-password" name="password" type="password" enterkeyhint="go" autocomplete="current-password" required />
           </label>
           <button class="auth-submit" id="admin-login-submit" type="submit">Sign in</button>
         </form>

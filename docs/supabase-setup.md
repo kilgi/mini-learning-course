@@ -78,9 +78,9 @@ create policy "Users can update their own course feedback"
 
 ## Admin access and editable course content
 
-Create the admin account in Supabase Authentication with the email `admin@gmail.com` and set its password to `12345678`. Do not place the password in this static site's files. The admin page signs in through the same Supabase Auth system as students, and database policies grant admin access only to a session whose verified email claim is `admin@gmail.com`.
+Create the admin user in Supabase Dashboard under Authentication with a strong, unique password. Set the user's `app_metadata.role` to `admin` using trusted dashboard tooling or a server-side Supabase Auth Admin API. Never set this role from the browser or store the password or a service-role key in this repository. The admin user's password is never stored in the repo.
 
-Run this SQL in the Supabase SQL Editor to enable course editing and progress removal:
+Create the course content table in the Supabase SQL Editor:
 
 ```sql
 create table if not exists public.course_content (
@@ -92,48 +92,19 @@ create table if not exists public.course_content (
 alter table public.course_content enable row level security;
 grant select on public.course_content to authenticated;
 grant insert, update on public.course_content to authenticated;
+revoke all on public.course_content from anon;
 
 create policy "Authenticated users can read course content"
   on public.course_content
   for select
   to authenticated
   using (true);
-
-create policy "Admins can create course content"
-  on public.course_content
-  for insert
-  to authenticated
-  with check ((auth.jwt() ->> 'email') = 'admin@gmail.com');
-
-create policy "Admins can update course content"
-  on public.course_content
-  for update
-  to authenticated
-  using ((auth.jwt() ->> 'email') = 'admin@gmail.com')
-  with check ((auth.jwt() ->> 'email') = 'admin@gmail.com');
-
-grant delete on public.lesson_progress to authenticated;
-grant delete on public.course_feedback to authenticated;
-
-create policy "Admins can read all lesson progress"
-  on public.lesson_progress
-  for select
-  to authenticated
-  using ((auth.jwt() ->> 'email') = 'admin@gmail.com');
-
-create policy "Admins can delete lesson progress"
-  on public.lesson_progress
-  for delete
-  to authenticated
-  using ((auth.jwt() ->> 'email') = 'admin@gmail.com');
-
-create policy "Admins can delete course feedback"
-  on public.course_feedback
-  for delete
-  to authenticated
-  using ((auth.jwt() ->> 'email') = 'admin@gmail.com');
 ```
+
+After creating all three application tables (`course_content`, `lesson_progress`, and `course_feedback`), run [`security-fix.sql`](security-fix.sql) in the SQL Editor. It enables RLS on those tables and the Supabase-managed `auth.users` table, adds database constraints for lesson IDs and feedback length, and installs the admin-only policies using the verified `app_metadata.role` claim. It deliberately leaves student policies unchanged: students can access only their own progress and feedback rows, while authenticated learners can read course content.
 
 The admin editor stores the course as JSONB and supports editing the course title and description, lesson titles and summaries, and lesson sections, paragraphs, and bullet points. Lesson IDs must remain unchanged because each lesson has a static HTML route. The progress reset permanently removes completion records for the course.
 
 The old progress stored in this browser's `localStorage` is not imported: it has no verified account owner. Clearing browser data signs a user out, but after signing back in, progress remains in the Supabase database. The static lesson HTML is not confidential; client-side redirects provide the sign-in flow, while Supabase policies protect account progress data.
+
+Supabase Auth may need a token refresh after changing `app_metadata`; sign out and back in before testing the admin role. The database policies, not the client-side admin check, are the authorization boundary.

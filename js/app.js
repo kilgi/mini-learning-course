@@ -26,9 +26,10 @@ function renderCourseCard(course, index, userId, completedLessonIds, feedback = 
 	const footer = document.createElement("div");
 	const count = document.createElement("span");
 	const link = document.createElement("a");
-	const completedLessons = new Set(completedLessonIds);
-	const totalLessons = course.lessons.length;
-	const completedCount = course.lessons.filter((lesson) => completedLessons.has(lesson.id)).length;
+	const courseLessonIds = new Set(course.lessons.map((lesson) => lesson.id));
+	const completedLessons = new Set(completedLessonIds.filter((lessonId) => courseLessonIds.has(lessonId)));
+	const totalLessons = courseLessonIds.size;
+	const completedCount = completedLessons.size;
 	const progressPercent = totalLessons === 0 ? 0 : Math.round((completedCount / totalLessons) * 100);
 	const allLessonsComplete = totalLessons > 0 && completedCount === totalLessons;
 	const isComplete = allLessonsComplete && Boolean(feedback.trim());
@@ -59,11 +60,12 @@ function renderCourseCard(course, index, userId, completedLessonIds, feedback = 
 	completionStatus.hidden = !allLessonsComplete;
 	progress.append(progressLabel, progressBar, completionStatus);
 	feedbackForm.className = "course-feedback";
-	feedbackForm.hidden = !allLessonsComplete;
+	feedbackForm.hidden = !allLessonsComplete || Boolean(feedback.trim());
 	feedbackLabel.className = "course-feedback-label";
 	feedbackLabel.textContent = "Required course feedback";
 	feedbackInput.className = "course-feedback-input";
 	feedbackInput.name = "feedback";
+	feedbackInput.inputMode = "text";
 	feedbackInput.rows = 3;
 	feedbackInput.maxLength = 2000;
 	feedbackInput.required = true;
@@ -72,7 +74,7 @@ function renderCourseCard(course, index, userId, completedLessonIds, feedback = 
 	feedbackLabel.append(feedbackInput);
 	feedbackSubmit.className = "course-feedback-submit";
 	feedbackSubmit.type = "submit";
-	feedbackSubmit.textContent = feedback ? "Update feedback" : "Submit feedback";
+	feedbackSubmit.textContent = "Submit feedback";
 	feedbackStatus.className = "course-feedback-status";
 	feedbackStatus.setAttribute("role", "status");
 	feedbackForm.append(feedbackLabel, feedbackSubmit, feedbackStatus);
@@ -89,11 +91,12 @@ function renderCourseCard(course, index, userId, completedLessonIds, feedback = 
 		try {
 			await saveCourseFeedback(userId, course.id, feedbackInput.value);
 			completionStatus.textContent = "Course completed";
-			feedbackSubmit.textContent = "Update feedback";
+			feedbackLabel.hidden = true;
+			feedbackSubmit.hidden = true;
 			feedbackStatus.textContent = "Feedback saved. Course completed.";
 		} catch {
 			feedbackStatus.textContent = "Feedback could not be saved. Check your connection and try again.";
-			feedbackSubmit.textContent = feedback ? "Update feedback" : "Submit feedback";
+			feedbackSubmit.textContent = "Submit feedback";
 		} finally {
 			feedbackSubmit.disabled = false;
 		}
