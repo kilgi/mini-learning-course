@@ -55,8 +55,8 @@ function renderCourseCard(course, index, userId, completedLessonIds, feedback = 
 	progressBar.append(progressFill);
 	completionStatus.className = "course-completion-status";
 	completionStatus.textContent = isComplete
-		? "Course completed"
-		: "All lessons complete. Submit feedback to finish this course.";
+		? "Course complete."
+		: "Course complete. Please leave feedback to finish.";
 	completionStatus.hidden = !allLessonsComplete;
 	progress.append(progressLabel, progressBar, completionStatus);
 	feedbackForm.className = "course-feedback";
@@ -102,6 +102,7 @@ function renderCourseCard(course, index, userId, completedLessonIds, feedback = 
 		}
 	});
 	lessonsDisclosure.className = "course-lessons";
+	lessonsDisclosure.open = true;
 	lessonsSummary.append(title);
 	lessonList.className = "course-lesson-list";
 	course.lessons.forEach((lesson, lessonIndex) => {

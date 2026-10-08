@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#edf2eb" />
+  <meta name="theme-color" content="#FFFFFF" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js; style-src 'self'; img-src 'self'; connect-src 'self' https://cdwxkittegibajvlnkvw.supabase.co wss://cdwxkittegibajvlnkvw.supabase.co" />
   <title>Course administration</title>
   <link rel="stylesheet" href="css/style.css" />
@@ -23,10 +23,10 @@
     </header>
 
     <main class="admin-main">
+      <h1 class="admin-page-title" id="admin-login-title">Course administration</h1>
       <p class="admin-status" id="admin-status" role="status" aria-live="polite" hidden></p>
       <section class="admin-login" id="admin-login" aria-labelledby="admin-login-title">
         <p class="eyebrow">RESTRICTED ACCESS</p>
-        <h1 id="admin-login-title">Course administration</h1>
         <p class="admin-intro">Sign in with the authorized administrator account.</p>
         <form id="admin-login-form" class="admin-panel">
           <label class="auth-field" for="admin-login-email">
@@ -45,7 +45,7 @@
         <div class="admin-heading">
           <div>
             <p class="eyebrow">ADMINISTRATION</p>
-            <h1 id="admin-title">Manage course</h1>
+            <h2 id="admin-title">Manage course</h2>
           </div>
           <a class="admin-back-link" href="index.html">View course library</a>
         </div>
