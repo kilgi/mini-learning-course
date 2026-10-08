@@ -28,7 +28,7 @@ Add screenshots at these paths:
 ## Technology
 
 - HTML, CSS, and browser JavaScript; no build step or frontend framework.
-- Supabase JavaScript client, Auth, and PostgreSQL with row-level security (RLS).
+- Supabase JavaScript client, Auth, and PostgreSQL 
 - GitHub Pages for the live static site.
 - VS Code Live Server for local development.
 
