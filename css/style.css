@@ -1458,6 +1458,24 @@ textarea::placeholder {
 	background: var(--orange-hover);
 }
 
+.public-role-link {
+	display: inline-flex;
+	min-height: 50px;
+	align-items: center;
+	justify-content: center;
+	padding: 0 18px;
+	border: 1px solid var(--orange-dark);
+	color: var(--orange-dark);
+	background: transparent;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.public-role-link:hover {
+	color: var(--orange-hover);
+	background: var(--soft-orange);
+}
+
 .public-principles {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));

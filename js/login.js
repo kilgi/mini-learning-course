@@ -7,7 +7,17 @@ const passwordInput = document.querySelector("#password");
 const nameField = document.querySelector("#name-field");
 const nameInput = document.querySelector("#display-name");
 const modeButtons = [...document.querySelectorAll("[data-auth-mode]")];
+const isTeacherLogin = new URLSearchParams(window.location.search).get("role") === "teacher";
 let authMode = "signin";
+
+if (isTeacherLogin) {
+	document.body.dataset.loginRole = "teacher";
+	document.title = "Teacher sign in | Course Library";
+	document.querySelector(".auth-mode-switch").hidden = true;
+	document.querySelector(".auth-intro .eyebrow").textContent = "TEACHER ACCESS";
+	document.querySelector("#auth-title").textContent = "Sign in to your teaching account.";
+	document.querySelector(".auth-intro p:last-child").textContent = "Use your authorized teacher account to create and manage courses.";
+}
 
 function setAuthMode(mode) {
 	authMode = mode;
@@ -26,6 +36,9 @@ function setAuthMode(mode) {
 
 function getFriendlyAuthError(error) {
 	const message = error?.message?.toLowerCase() || "";
+	if (error?.code === "teacher_role_required") {
+		return "This account is not authorized as a teacher. Sign in with an authorized teacher account.";
+	}
 	if (message.includes("invalid login credentials")) {
 		return "Incorrect email or password. Please try again.";
 	}
@@ -70,14 +83,20 @@ authForm.addEventListener("submit", async (event) => {
 			authMessage.textContent = "Account created. Check your email to confirm it, then sign in.";
 			authMessage.classList.add("auth-message-success");
 		} else {
-			const { error } = await supabaseClient.auth.signInWithPassword({
+			const { data, error } = await supabaseClient.auth.signInWithPassword({
 				email: emailInput.value.trim(),
 				password: passwordInput.value
 			});
 			if (error) {
 				throw error;
 			}
-			window.location.replace("student.html");
+			if (isTeacherLogin && data.user?.app_metadata?.role !== "admin") {
+				await supabaseClient.auth.signOut();
+				const roleError = new Error("Teacher role required.");
+				roleError.code = "teacher_role_required";
+				throw roleError;
+			}
+			window.location.replace(isTeacherLogin ? "teacher.html" : "student.html");
 			return;
 		}
 	} catch (error) {
@@ -100,9 +119,16 @@ if (!supabaseClient) {
 		button.disabled = true;
 	});
 } else {
-	supabaseClient.auth.getSession().then(({ data }) => {
-		if (data.session) {
-			window.location.replace("student.html");
+	supabaseClient.auth.getSession().then(async ({ data }) => {
+		if (!data.session) {
+			return;
 		}
+		if (isTeacherLogin && data.session.user.app_metadata?.role !== "admin") {
+			await supabaseClient.auth.signOut();
+			authMessage.textContent = "This account is not authorized as a teacher. Sign in with an authorized teacher account.";
+			authMessage.hidden = false;
+			return;
+		}
+		window.location.replace(isTeacherLogin ? "teacher.html" : "student.html");
 	});
 }

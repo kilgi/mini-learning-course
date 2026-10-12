@@ -38,7 +38,7 @@ Add screenshots at these paths:
 
 1. Open this project folder in VS Code.
 2. Install the **Live Server** extension by Ritwick Dey if it is not already installed.
-3. In the Explorer, right-click `index.html` and choose **Open with Live Server**, or select **Go Live** in the status bar. The public introduction opens first; choose **Explore courses** or **Sign in** to continue.
+3. In the Explorer, right-click `index.html` and choose **Open with Live Server**, or select **Go Live** in the status bar. The public introduction opens first; choose **Student login** or **Teacher login** to continue.
 4. Complete the Supabase setup below before trying to sign in. Without Supabase configuration, sign-in is disabled.
 
 ### Create and configure Supabase
@@ -73,7 +73,7 @@ Add screenshots at these paths:
 	```
 
 	The role must be in **app metadata**, not user metadata. Confirm the account if email confirmation is enabled, then sign out and back in so the role claim refreshes. Keep the account's real email and password out of this repository.
-8. Sign in at the local or live site and open **Teacher studio** as the authorized teacher to create courses. Learners use **Explore courses** after signing in.
+8. Learners use **Student login** to sign in or create an account; the authorized teacher uses **Teacher login** to open the teacher studio.
 
 ## Project structure
 
