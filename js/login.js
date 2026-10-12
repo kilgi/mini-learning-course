@@ -64,7 +64,7 @@ authForm.addEventListener("submit", async (event) => {
 				throw error;
 			}
 			if (data.session) {
-				window.location.replace("index.html");
+				window.location.replace("student.html");
 				return;
 			}
 			authMessage.textContent = "Account created. Check your email to confirm it, then sign in.";
@@ -77,7 +77,7 @@ authForm.addEventListener("submit", async (event) => {
 			if (error) {
 				throw error;
 			}
-			window.location.replace("index.html");
+			window.location.replace("student.html");
 			return;
 		}
 	} catch (error) {
@@ -102,7 +102,7 @@ if (!supabaseClient) {
 } else {
 	supabaseClient.auth.getSession().then(({ data }) => {
 		if (data.session) {
-			window.location.replace("index.html");
+			window.location.replace("student.html");
 		}
 	});
 }

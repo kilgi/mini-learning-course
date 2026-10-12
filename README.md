@@ -38,7 +38,7 @@ Add screenshots at these paths:
 
 1. Open this project folder in VS Code.
 2. Install the **Live Server** extension by Ritwick Dey if it is not already installed.
-3. In the Explorer, right-click `login.html` and choose **Open with Live Server**, or select **Go Live** in the status bar. The site should open at a local address such as `http://127.0.0.1:5500/login.html`.
+3. In the Explorer, right-click `index.html` and choose **Open with Live Server**, or select **Go Live** in the status bar. The public introduction opens first; choose **Explore courses** or **Sign in** to continue.
 4. Complete the Supabase setup below before trying to sign in. Without Supabase configuration, sign-in is disabled.
 
 ### Create and configure Supabase
@@ -73,7 +73,7 @@ Add screenshots at these paths:
 	```
 
 	The role must be in **app metadata**, not user metadata. Confirm the account if email confirmation is enabled, then sign out and back in so the role claim refreshes. Keep the account's real email and password out of this repository.
-8. Open the local or live sign-in page and create a learner account to try the course.
+8. Sign in at the local or live site and open **Teacher studio** as the authorized teacher to create courses. Learners use **Explore courses** after signing in.
 
 ## Project structure
 
@@ -85,6 +85,8 @@ Add screenshots at these paths:
 ├── lesson-2.html
 ├── lesson-3.html
 ├── login.html
+├── student.html
+├── teacher.html
 ├── css/
 │   └── style.css
 ├── docs/
@@ -98,6 +100,8 @@ Add screenshots at these paths:
 │   ├── lesson.js
 │   ├── login.js
 │   ├── storage.js
+│   ├── student.js
+│   ├── teacher.js
 │   └── supabase-config.js
 ├── DESIGN.md
 └── TESTING.md
@@ -107,7 +111,7 @@ The screenshot links above are placeholders until the four image files are added
 
 ## Security
 
-The browser uses only the Supabase public publishable/anon key; it is public by design, so database access must be protected by RLS. Never put a service-role/secret key, real passwords, or private learner data in this repository. RLS limits learner progress and feedback to the signed-in user's UUID. Authenticated users can read course content; only users with the trusted `app_metadata.role = 'admin'` claim can edit it or perform admin resets. The client-side admin check controls the page UI, but database RLS is the security boundary. See [docs/supabase-setup.md](docs/supabase-setup.md) for details.
+The browser uses only the Supabase public publishable/anon key; it is public by design, so database access must be protected by RLS. Never put a service-role/secret key, real passwords, or private learner data in this repository. RLS limits learner progress to the signed-in user's UUID. Authenticated users can read course content and materials; only users with the trusted `app_metadata.role = 'admin'` claim can edit course content or upload/delete files. The teacher page check controls the UI, but database RLS is the security boundary. See [docs/supabase-setup.md](docs/supabase-setup.md) for details.
 
 ## More information
 

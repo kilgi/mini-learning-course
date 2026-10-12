@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FFF9F1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js; style-src 'self'; img-src 'self'; connect-src 'self' https://cdwxkittegibajvlnkvw.supabase.co wss://cdwxkittegibajvlnkvw.supabase.co" />
+  <title>Course library | Course Library</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous" defer></script>
+  <script src="js/supabase-config.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/student.js" defer></script>
+</head>
+<body class="auth-pending">
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="site-title" href="index.html">Course Library</a>
+      <div class="account-summary">
+        <span class="account-email" data-account-email></span>
+        <button class="sign-out-button" type="button" data-sign-out>Sign out</button>
+      </div>
+    </header>
+    <main class="catalog-layout" id="student-app">
+      <section class="catalog-heading" id="catalog-view" aria-labelledby="catalog-title">
+        <p class="eyebrow">LEARNING LIBRARY</p>
+        <h1 id="catalog-title">Find a course to follow.</h1>
+        <p class="catalog-subtitle">Every course is created by a teacher. Your lesson progress stays with your account.</p>
+        <div class="course-grid" id="course-list" aria-live="polite"></div>
+      </section>
+      <section class="dynamic-lesson" id="lesson-view" hidden aria-labelledby="lesson-title">
+        <a class="back-link" id="lesson-back" href="student.html"><span aria-hidden="true">&#8592;</span> All courses</a>
+        <header class="lesson-heading">
+          <p class="eyebrow" id="lesson-number"></p>
+          <h1 id="lesson-title"></h1>
+          <p class="lesson-summary" id="lesson-summary"></p>
+        </header>
+        <article class="lesson-content" id="lesson-content"></article>
+        <section class="lesson-materials" id="lesson-materials" hidden aria-labelledby="materials-title">
+          <h2 id="materials-title">Materials and links</h2>
+          <ul id="material-list"></ul>
+        </section>
+        <button class="complete-button" id="complete-lesson" type="button" aria-pressed="false">Mark lesson complete</button>
+        <p class="status-message" id="lesson-status" role="status" hidden></p>
+        <nav class="lesson-navigation" aria-label="Lesson navigation">
+          <a id="previous-lesson" href="#" hidden></a>
+          <a id="next-lesson" href="#"></a>
+        </nav>
+      </section>
+      <p class="status-message" id="catalog-status" role="status" aria-live="polite" hidden></p>
+    </main>
+  </div>
+</body>
+</html>

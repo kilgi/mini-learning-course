@@ -4,6 +4,9 @@
     alter table public.lesson_progress enable row level security;
     alter table public.course_feedback enable row level security;
 
+    alter table public.lesson_progress
+        drop constraint if exists lesson_progress_course_lesson_allowed_check;
+
     do $$
     begin
         if not exists (
@@ -16,18 +19,6 @@
                 check (char_length(feedback) <= 2000);
         end if;
 
-        if not exists (
-            select 1 from pg_constraint
-            where conname = 'lesson_progress_course_lesson_allowed_check'
-                and conrelid = 'public.lesson_progress'::regclass
-        ) then
-            alter table public.lesson_progress
-                add constraint lesson_progress_course_lesson_allowed_check
-                check (
-                    course_id = 'intro-to-ai'
-                    and lesson_id in ('lesson-1', 'lesson-2', 'lesson-3')
-                );
-        end if;
     end
     $$;
 
@@ -57,6 +48,51 @@
         to authenticated
         using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
         with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+    values (
+        'course-materials',
+        'course-materials',
+        false,
+        20971520,
+        array[
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ]
+    )
+    on conflict (id) do update
+    set public = false,
+        file_size_limit = excluded.file_size_limit,
+        allowed_mime_types = excluded.allowed_mime_types;
+
+    drop policy if exists "Authenticated users can read course materials" on storage.objects;
+    drop policy if exists "Admins can upload course materials" on storage.objects;
+    drop policy if exists "Admins can delete course materials" on storage.objects;
+
+    create policy "Authenticated users can read course materials"
+        on storage.objects
+        for select
+        to authenticated
+        using (bucket_id = 'course-materials');
+
+    create policy "Admins can upload course materials"
+        on storage.objects
+        for insert
+        to authenticated
+        with check (
+            bucket_id = 'course-materials'
+            and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+        );
+
+    create policy "Admins can delete course materials"
+        on storage.objects
+        for delete
+        to authenticated
+        using (
+            bucket_id = 'course-materials'
+            and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+        );
 
     create policy "Admins can read all lesson progress"
         on public.lesson_progress

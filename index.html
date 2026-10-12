@@ -3,37 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#FFFFFF" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js; style-src 'self'; img-src 'self'; connect-src 'self' https://cdwxkittegibajvlnkvw.supabase.co wss://cdwxkittegibajvlnkvw.supabase.co" />
-  <title>Course Library</title>
+  <meta name="theme-color" content="#FFF9F1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; style-src 'self';" />
+  <title>Course Library | Learn at your pace</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous" defer></script>
-  <script src="js/data.js" defer></script>
-  <script src="js/supabase-config.js" defer></script>
-  <script src="js/auth.js" defer></script>
-  <script src="js/storage.js" defer></script>
-  <script src="js/app.js" defer></script>
 </head>
-<body class="auth-pending">
-  <div class="page-shell">
-    <header class="site-header">
+<body>
+  <div class="public-shell">
+    <header class="site-header public-header">
       <a class="site-title" href="index.html">Course Library</a>
-      <div class="account-summary">
-        <span class="account-email" data-account-email></span>
-        <button class="sign-out-button" type="button" data-sign-out>Sign out</button>
-      </div>
+      <nav class="public-nav" aria-label="Main navigation">
+        <a href="student.html">Explore courses</a>
+        <a class="public-nav-cta" href="login.html">Sign in</a>
+      </nav>
     </header>
-
-    <main class="catalog-layout">
-      <section class="catalog-heading" aria-labelledby="catalog-title">
-        <p class="eyebrow">COURSE CATALOG</p>
-        <h1 id="catalog-title">Find a topic to explore.</h1>
-        <p class="catalog-subtitle">Choose a course and take it one lesson at a time.</p>
-        <div class="course-grid" id="course-list" aria-live="polite"></div>
-        <p class="status-message" id="catalog-status" role="status" hidden></p>
+    <main>
+      <section class="public-hero" aria-labelledby="intro-title">
+        <div class="public-hero-copy">
+          <p class="eyebrow">A SMALLER WAY TO LEARN</p>
+          <h1 id="intro-title">Make room for a new idea.</h1>
+          <p>Short, thoughtful courses built by teachers. Read a lesson, follow the references, and keep your progress with you.</p>
+          <div class="public-actions">
+            <a class="public-primary-link" href="login.html">Create an account</a>
+          </div>
+        </div>
       </section>
-
+      <section class="public-principles" aria-label="About the library">
+        <p><span>01</span> Learn in small steps</p>
+        <p><span>02</span> Keep useful resources close</p>
+        <p><span>03</span> Return whenever you are ready</p>
+      </section>
     </main>
+    <footer class="public-footer">
+      <span>Course Library</span>
+      <a href="teacher.html">Teacher studio</a>
+    </footer>
   </div>
 </body>
 </html>

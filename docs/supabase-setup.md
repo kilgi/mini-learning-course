@@ -35,7 +35,7 @@ create policy "Users can record their own lesson progress"
 ```
 
 3. Copy the Project URL and publishable/anon key from the Supabase project API settings into `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `js/supabase-config.js`.
-4. For local development, run `python3 -m http.server 8000` from the project root and open `http://localhost:8000/login.html`. Add `http://localhost:8000/**` and your production site's URL under Supabase Auth URL Configuration; set the Site URL for the environment you are testing.
+4. For local development, run `python3 -m http.server 8000` from the project root and open `http://localhost:8000/`. Add `http://localhost:8000/**` and your production site's URL under Supabase Auth URL Configuration; set the Site URL for the environment you are testing.
 5. Serve the deployed site over HTTPS.
 6. Configure database backups/retention in Supabase for the project's needs.
 
@@ -76,9 +76,9 @@ create policy "Users can update their own course feedback"
   with check (auth.uid() = user_id);
 ```
 
-## Admin access and editable course content
+## Teacher access, course content, and files
 
-Create the admin user in Supabase Dashboard under Authentication with a strong, unique password. Set the user's `app_metadata.role` to `admin` using trusted dashboard tooling or a server-side Supabase Auth Admin API. Never set this role from the browser or store the password or a service-role key in this repository. The admin user's password is never stored in the repo.
+Create the teacher account in Supabase Dashboard under Authentication with a strong, unique password. Set the user's `app_metadata.role` to `admin` using trusted dashboard tooling or a server-side Supabase Auth Admin API. This trusted role protects course editing and file uploads. Never set this role from the browser or store the password or a service-role key in this repository.
 
 Create the course content table in the Supabase SQL Editor:
 
@@ -101,10 +101,10 @@ create policy "Authenticated users can read course content"
   using (true);
 ```
 
-After creating all three application tables (`course_content`, `lesson_progress`, and `course_feedback`), run [`security-fix.sql`](security-fix.sql) in the SQL Editor. It enables RLS on those tables and the Supabase-managed `auth.users` table, adds database constraints for lesson IDs and feedback length, and installs the admin-only policies using the verified `app_metadata.role` claim. It deliberately leaves student policies unchanged: students can access only their own progress and feedback rows, while authenticated learners can read course content.
+After creating all three application tables (`course_content`, `lesson_progress`, and `course_feedback`), run [`security-fix.sql`](security-fix.sql) in the SQL Editor. It enables RLS on those tables, removes the old fixed lesson-ID constraint, adds the feedback length constraint, and installs the admin-only policies using the verified `app_metadata.role` claim. It also creates a private `course-materials` Storage bucket. Authenticated learners can read course materials; only trusted admins can upload or delete them.
 
-The admin editor stores the course as JSONB and supports editing the course title and description, lesson titles and summaries, and lesson sections, paragraphs, and bullet points. Lesson IDs must remain unchanged because each lesson has a static HTML route. The progress reset permanently removes completion records for the course.
+The teacher studio stores each course as JSONB in `course_content`. Each course can contain lessons, lesson text, external links, and uploaded PDF or Word documents. Uploaded files are stored in the private Supabase Storage bucket and delivered to students with short-lived signed URLs. The configured upload limit is 20 MB per file.
 
-The old progress stored in this browser's `localStorage` is not imported: it has no verified account owner. Clearing browser data signs a user out, but after signing back in, progress remains in the Supabase database. The static lesson HTML is not confidential; client-side redirects provide the sign-in flow, while Supabase policies protect account progress data.
+The old progress stored in this browser's `localStorage` is not imported: it has no verified account owner. Clearing browser data signs a user out, but after signing back in, progress remains in the Supabase database. Course and lesson content is available to signed-in learners; Supabase policies protect learner progress and teacher-only writes.
 
 Supabase Auth may need a token refresh after changing `app_metadata`; sign out and back in before testing the admin role. The database policies, not the client-side admin check, are the authorization boundary.

@@ -20,7 +20,7 @@ function showAccount(user) {
 			try {
 				await supabaseClient.auth.signOut();
 			} finally {
-				window.location.replace("login.html");
+				window.location.replace("index.html");
 			}
 		});
 	});
