@@ -2,41 +2,39 @@
 
 ## Overview
 
-This static, multi-page site has a public introduction, a sign-in page, a database-backed student library, a reusable dynamic lesson view, and a teacher studio. Shared presentation is in `css/style.css`; protected pages load their controller from `js/` and the Supabase browser client.
+The app is a static multi-page site backed by Supabase. `index.html` is the public entry page, `login.html` handles student account creation/sign-in and teacher sign-in, `student.html` renders the database-backed library and lesson view, and `teacher.html` provides course authoring. Browser code uses the Supabase client configured in `js/supabase-config.js`; there is no application server in this repository.
 
-`student.html` reads all published course rows from `course_content`; lesson navigation uses course and lesson IDs in the query string. `teacher.html` creates and edits course JSON through the same table and stores private uploads in Supabase Storage. The original `lesson-1.html` through `lesson-3.html` pages and bundled seed remain only for compatibility with the original course.
+## Data Model
 
-## Data and Flow
+- **Course content:** `course_content` stores one row per course. `id` is the text primary key, `content` is JSONB containing the course object, and `updated_at` records the last save. The course object has an ID, title, description, and ordered lessons.
+- **Lesson:** Each lesson is nested in the course JSON and has an ID, title, summary, sections, and resources. Sections contain headings, paragraphs, and optional points. Resources are external URLs or paths to uploaded Storage objects.
+- **Progress:** `lesson_progress` stores `user_id`, `course_id`, `lesson_id`, and `completed_at`. Its composite primary key permits at most one completion row for a user/course/lesson tuple. The user ID references `auth.users`; course and lesson IDs are not foreign keys to nested JSON content.
+- **Resources:** Uploaded PDF and Word files are in the private `course-materials` Storage bucket. The client requests short-lived signed URLs to open uploaded files.
+- **Feedback:** Setup SQL also creates `course_feedback`, with one row per user and course. The current browser application does not read or write this table.
 
-The main data shapes are:
+## Roles and Ownership
 
-- **Course:** `id`, `title`, `description`, ordered `lessons`.
-- **Lesson:** `id`, `title`, `summary`, `sections` with headings, paragraphs, and optional points, and optional `resources` containing links or Storage object paths.
-- **Progress:** `user_id`, `course_id`, `lesson_id`, `completed_at`; it stores completion, not content.
+Supabase Auth supplies the authenticated user ID. Student mode is available to signed-in accounts; teacher mode requires the trusted JWT claim `app_metadata.role = 'admin'`. The role is assigned through trusted Supabase tooling, not by the browser.
 
-Supabase maps these to `course_content` (`id`, full course JSONB, `updated_at`), `lesson_progress` (one row per user/course/lesson, composite primary key), and `course_feedback` (legacy feedback table). Private PDFs and Word documents live in the `course-materials` Storage bucket and are opened using short-lived signed URLs.
+Students can read course content and authenticated users can read course materials. RLS scopes progress and feedback access to the row's `user_id`; trusted admins can read all progress and delete progress/feedback under the installed policies. Admin-role users can insert and update course rows and upload/delete course files.
 
-`content + saved progress -> page logic -> screens`. The student library derives statuses, percentage, and next lesson from fetched IDs; the lesson view renders course sections, resources, and completion state. Failed progress saves do not mark the lesson complete.
+There is no course-owner column or per-teacher course policy. Therefore all accounts with the trusted admin role can edit every course; teacher A is not isolated from teacher B's courses. There is also no draft/published field: a saved course is readable by students. These are current schema/policy limitations, not implemented capabilities.
 
-## Accounts and Access
+## Data Flow
 
-Supabase Auth supplies each learner's UUID. RLS is enabled on the application tables and anonymous access is revoked. Authenticated users can read course content and materials; only users with the trusted admin app-metadata role can write course content and manage uploads. Learners can read/insert their own progress.
+1. The login page signs users in through Supabase Auth. Teacher login additionally checks the trusted role claim and routes authorized accounts to the teacher studio.
+2. The student page fetches `course_content` and the current user's `lesson_progress`. Course and lesson IDs in the query string select the active lesson; the browser builds the catalog and lesson view from the returned course JSON.
+3. The student view calculates completion counts and the next lesson from progress rows that match the current course's lesson IDs. Marking a lesson complete inserts a progress row.
+4. The teacher page reads course rows, edits the course JSON, uploads resources to Storage, and upserts the course row. Uploaded resources are displayed through signed URLs; external resources are limited to HTTP(S) links.
 
-The trusted `app_metadata.role = 'admin'` claim gates the teacher studio. RLS remains the security boundary; role assignment is done in trusted Supabase tooling.
+## Stale Progress and Duplicate Completion
 
-## Design Questions
+Progress is stored independently from the nested lesson JSON. When rendering a course, the student code builds the current set of lesson IDs and counts only progress rows whose lesson IDs still exist in that set. If a lesson is removed from a course, its old progress row is not automatically deleted, but it no longer contributes to displayed completion or next-lesson selection. The composite primary key prevents duplicate completion rows; the UI also disables the completion button after success. A duplicate insert response is treated as already completed.
 
-- **How are lesson routes chosen?** Each lesson opens through the same student page using its database course and lesson IDs; no static route is required for new content.
-- **How is content separated from learner progress?** Content is shared by course ID; progress and feedback are separate user-owned rows. Editing content does not clear progress.
-- **What happens when stored progress is cleared?** Admin reset deletes course progress and feedback, not content; learners see zero progress on their next load. Clearing Local Storage only signs out and leaves server rows intact.
-- **How does the UI avoid stale progress after Complete?** It waits for the insert before updating its in-memory set and control. The primary key prevents duplicate rows; failures show an error without marking completion.
+## Database and Auth Failures
 
-## Why Supabase
+If Supabase is not configured, the student page shows a configuration status and the login controls are disabled. If the student course query fails, the page shows an error and does not substitute bundled course content. If only the progress query fails, courses still render with progress treated as empty for that load and a warning is shown. A failed completion insert leaves the lesson incomplete and displays an error. Teacher query/save/upload failures are shown in the teacher status area. If the current-user lookup fails, the student page redirects to sign-in; the teacher page denies access unless it can verify an authorized session.
 
-Accounts/server storage expand the original version-one scope to provide learner-owned progress and required feedback across devices. Supabase Auth supplies identity; PostgreSQL/RLS persist and isolate records. Old browser-only progress is not imported because it has no verified owner.
+## Security Boundary
 
-Course, progress, and resource data are fetched from Supabase. If progress reads fail, course content remains readable but completion cannot be saved. Authentication is required for student and teacher pages.
-
-## If this grew
-
-The next design step would be to version and validate course content separately from its static routes, then add automated tests for the UI flows and RLS policies. Those capabilities are not part of the current implementation.
+RLS is enabled on `course_content`, `lesson_progress`, and `course_feedback`, and anonymous table access is revoked. The policies installed by `docs/supabase-setup.md` and `docs/security-fix.sql` allow authenticated course reads, user-scoped progress/feedback access, and trusted-admin course writes. Authenticated users can read objects in the private course-material bucket; only trusted admins can upload or delete them. The client-side teacher check is for the interface; database and Storage policies are the authorization boundary.

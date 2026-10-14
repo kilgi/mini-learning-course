@@ -1,12 +1,10 @@
 # Mini Learning Course
 
-A small, account-based course site with three introductory AI lessons and saved learner progress.
+A Supabase-backed course app with student and teacher modes. Teachers create courses in the teacher studio; students read course and lesson content and save lesson completion to their accounts.
 
-**Live course:** [https://kilgi.github.io/mini-learning-course](https://kilgi.github.io/mini-learning-course)
+**Live app:** [https://kilgi.github.io/mini-learning-course](https://kilgi.github.io/mini-learning-course)
 
 ## Screenshots
-
-Add screenshots at these paths:
 
 ![Course overview](docs/overview.png)
 
@@ -18,100 +16,84 @@ Add screenshots at these paths:
 
 ## Features
 
-- Sign up and sign in with Supabase Auth.
-- Read three AI lessons and move between them.
-- Save completion per learner and continue at the earliest unfinished lesson.
-- See progress as lesson counts and a percentage; submit feedback after completing all lessons.
-- Use the admin page to update course content or clear course progress and feedback.
-- Fall back to bundled lesson content if the saved content cannot be read.
+- Students can create an account, sign in, browse courses, and open lessons.
+- Courses and their ordered lesson content are stored in Supabase PostgreSQL as JSONB.
+- Lesson completion is stored per signed-in user, course, and lesson.
+- Teachers can create and edit courses, lesson text, external links, and uploaded PDF or Word resources.
+- Uploaded resources are stored in a private Supabase Storage bucket and served with signed URLs.
 
 ## Technology
 
 - HTML, CSS, and browser JavaScript; no build step or frontend framework.
-- Supabase JavaScript client, Auth, and PostgreSQL 
-- GitHub Pages for the live static site.
-- VS Code Live Server for local development.
+- Supabase Auth, PostgreSQL, Row Level Security (RLS), and Storage.
+- GitHub Pages for the static site.
 
 ## Setup
 
+### Configure Supabase
+
+1. Create a project in the [Supabase dashboard](https://supabase.com/dashboard) and enable Email under **Authentication > Providers**.
+2. Copy the project URL and public publishable key (or legacy anon key) from the project's API settings. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `js/supabase-config.js`. These values are used by browser code; never put a service-role or secret key there.
+3. In the Supabase SQL Editor, run every SQL block in `docs/supabase-setup.md` in the order shown. This creates the `lesson_progress`, `course_feedback`, and `course_content` tables and their initial policies. Run the SQL only, not the surrounding Markdown.
+4. After all three tables exist, run `docs/security-fix.sql` in the SQL Editor. It applies the final RLS policies and constraints and configures the private `course-materials` bucket.
+5. Create a teacher's Supabase Auth account in **Authentication > Users**. Using trusted dashboard tooling or a server-side Auth Admin API, set its `app_metadata` role to `admin`:
+
+   ```json
+   { "role": "admin" }
+   ```
+
+   Do not set this role from browser code or user-editable metadata. After changing the role, sign out and back in so the account receives the updated claim. Students can create accounts from the student sign-in page; only accounts with the trusted role can use teacher mode.
+6. In **Authentication > URL Configuration**, set the **Site URL** to `https://kilgi.github.io/mini-learning-course/` for the deployed site. Add the deployed callback pattern and the local URLs you use to **Redirect URLs**:
+
+   ```text
+   https://kilgi.github.io/mini-learning-course/**
+   http://localhost:8000/**
+   http://127.0.0.1:8000/**
+   ```
+
+   Use HTTPS for the deployed site. Set the Site URL to the appropriate environment when testing locally if your Auth flow requires it.
+
 ### Run locally
 
-1. Open this project folder in VS Code.
-2. Install the **Live Server** extension by Ritwick Dey if it is not already installed.
-3. In the Explorer, right-click `index.html` and choose **Open with Live Server**, or select **Go Live** in the status bar. The public introduction opens first; choose **Student login** or **Teacher login** to continue.
-4. Complete the Supabase setup below before trying to sign in. Without Supabase configuration, sign-in is disabled.
+From the project root, start a static server:
 
-### Create and configure Supabase
+```sh
+python3 -m http.server 8000
+```
 
-1. Create a project on the [Supabase dashboard](https://supabase.com/dashboard). The free plan is sufficient to get started. Enable Email authentication under **Authentication > Providers**.
-2. In **Project Settings > API** (the API Keys page in some dashboard versions), copy the **Project URL** and the public **publishable** key or legacy **anon** key.
-3. In `js/supabase-config.js`, set the two constants to your own project values:
-
-	```js
-	const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
-	const SUPABASE_ANON_KEY = "YOUR_PUBLIC_PUBLISHABLE_OR_ANON_KEY";
-	```
-
-	These are placeholders, not working credentials. Do not use a service-role or secret key in browser code.
-
-4. Open `docs/supabase-setup.md`. In the Supabase **SQL Editor**, run each SQL code block in that file to create the progress, feedback, and course-content tables and their learner policies. Do not paste the Markdown prose into the SQL Editor.
-5. After all three tables exist, run the complete `docs/security-fix.sql` script in the SQL Editor. This applies the final RLS policies and constraints, including the admin-only policies.
-6. In **Authentication > URL Configuration**, set **Site URL** to `https://kilgi.github.io/mini-learning-course/`. Add these **Redirect URLs**:
-
-	```text
-	https://kilgi.github.io/mini-learning-course/**
-	http://127.0.0.1:5500/**
-	http://localhost:5500/**
-	```
-
-	The local entries allow email-confirmation links during Live Server testing. Use HTTPS for the deployed site.
-
-7. In **Authentication > Users**, create the admin user. In its trusted dashboard app-metadata editor, set `app_metadata` to include:
-
-	```json
-	{ "role": "admin" }
-	```
-
-	The role must be in **app metadata**, not user metadata. Confirm the account if email confirmation is enabled, then sign out and back in so the role claim refreshes. Keep the account's real email and password out of this repository.
-8. Learners use **Student login** to sign in or create an account; the authorized teacher uses **Teacher login** to open the teacher studio.
+Open `http://localhost:8000/`. Configure the Supabase project and Auth URLs before signing in. The public page links to student login and teacher login.
 
 ## Project structure
 
 ```text
 .
-├── admin.html
 ├── index.html
-├── lesson-1.html
-├── lesson-2.html
-├── lesson-3.html
 ├── login.html
 ├── student.html
 ├── teacher.html
 ├── css/
 │   └── style.css
 ├── docs/
+│   ├── complete.png
+│   ├── lesson.png
+│   ├── mobile.png
+│   ├── overview.png
 │   ├── security-fix.sql
 │   └── supabase-setup.md
 ├── js/
-│   ├── admin.js
-│   ├── app.js
 │   ├── auth.js
-│   ├── data.js
-│   ├── lesson.js
 │   ├── login.js
-│   ├── storage.js
 │   ├── student.js
-│   ├── teacher.js
-│   └── supabase-config.js
+│   ├── supabase-config.js
+│   └── teacher.js
 ├── DESIGN.md
+├── README.md
 └── TESTING.md
 ```
 
-The screenshot links above are placeholders until the four image files are added to `docs/`.
-
 ## Security
 
-The browser uses only the Supabase public publishable/anon key; it is public by design, so database access must be protected by RLS. Never put a service-role/secret key, real passwords, or private learner data in this repository. RLS limits learner progress to the signed-in user's UUID. Authenticated users can read course content and materials; only users with the trusted `app_metadata.role = 'admin'` claim can edit course content or upload/delete files. The teacher page check controls the UI, but database RLS is the security boundary. See [docs/supabase-setup.md](docs/supabase-setup.md) for details.
+The browser uses only the public publishable/anon key. Anonymous access is revoked from the application tables, and RLS policies control authenticated access. Authenticated users can read course content and course materials. Students can read and insert their own progress; trusted admins can read or delete progress. Users can read, insert, and update their own feedback; trusted admins can delete feedback. A trusted `app_metadata.role = 'admin'` claim allows course-content writes and Storage uploads/deletions. The current policies do not assign courses to individual teachers: any account with that trusted role can update any course row. The teacher-page role check controls the UI, but RLS is the database authorization boundary. Never commit service-role keys, passwords, or private account information. See [docs/supabase-setup.md](docs/supabase-setup.md) and [docs/security-fix.sql](docs/security-fix.sql).
 
 ## More information
 

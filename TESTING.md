@@ -1,21 +1,21 @@
 # Manual Test Log
 
-- **Live link:**
+- **Live link:** https://kilgi.github.io/mini-learning-course
 - **Test date:**
 - **Browser:**
 - **Device:**
 
-Use a dedicated test learner and teacher. The teacher account must have trusted `app_metadata.role = 'admin'`. Run the current SQL in `docs/supabase-setup.md` and `docs/security-fix.sql` before testing database and file workflows.
+Use separate student accounts and at least two accounts with trusted `app_metadata.role = 'admin'` for role tests. Configure Supabase using [docs/supabase-setup.md](docs/supabase-setup.md), then run [docs/security-fix.sql](docs/security-fix.sql) after the setup tables exist. Do not use production accounts for destructive checks.
 
-| Check | Steps | Expected result | Result (Pass/Fail) | Notes |
-| --- | --- | --- | --- | --- |
-| Public entry | Open the site root while signed out. | `index.html` introduces the library and links to sign-in, courses, and the teacher studio; it does not display the learner catalog. |  |  |
-| Teacher authorization | Open `teacher.html` as a learner without the admin app-metadata role, then as the trusted teacher. | Learner receives an access-denied message and cannot open the editor. Teacher can access the studio. |  |  |
-| Create and preview courses | As teacher, create two courses with different lesson counts. Use Next to move through lessons, Back to revisit one and verify its content remains, then save on the final lesson. | Each step shows the correct lesson number; after saving, the teacher is redirected to an overview showing the course name, description, lesson text, and resources. Both courses appear in the course selector and student library. |  |  |
-| Add lesson materials | Add lesson text, an https link, a PDF, and a Word document; save the course. | The lesson and resource metadata persist after refresh. Files upload to the private Storage bucket. |  |  |
-| Student lesson access | Sign in as a learner, open each course and lesson, and follow previous/next navigation. | All database-backed titles and text render in the dynamic student page. Resource links open safely and uploaded files use signed URLs. |  |  |
-| Student progress | Mark lessons complete, refresh, and continue through another course. | Completion persists per learner, course, and lesson; counts and next lesson are correct after refresh. |  |  |
-| Failed database access | Block Supabase requests and reload the student library. | A clear status appears; the page does not crash or show bundled static course content as if it came from the database. |  |  |
-| Responsive at 375px | Inspect the public home, student catalog, dynamic lesson, and teacher editor at 375 CSS pixels. | No horizontal overflow, clipped labels, or overlapping controls; file inputs and form actions remain usable. |  |  |
-| Keyboard and accessibility | Navigate all pages using Tab, Shift+Tab, Enter, and Space; run Lighthouse Accessibility. | Interactive controls have visible focus and accessible names; each page has a clear H1; completion states use text, not color alone. |  |  |
-| Sign-in and sign-out | Try an incorrect password, then sign in and sign out normally. | Clear authentication errors appear; successful sign-in opens the student library and sign-out returns to the public home. |  |  |
+**Known coverage limits:** The current schema has no course-owner field, so every trusted admin-role account can edit every course. It also has no draft/published status; saved course rows are immediately readable by students. The ownership and draft tests below are included to make these limitations visible, not to imply the current system passes them.
+
+| Area | Test | Steps | Expected result | Result | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Student | Wrong password shows an error | Sign in with a valid account email and an incorrect password. | A clear incorrect-email-or-password message appears and sign-in does not succeed. |  |  |
+| Student | Progress cannot be double counted | Complete one lesson, reload and inspect progress; then attempt to insert the same `(user_id, course_id, lesson_id)` completion again using the authenticated test client. | The lesson contributes at most one completion. The composite primary key rejects a duplicate and the UI continues to show it as complete. |  |  |
+| Student | Course and lesson content load | Sign in and open a course, a lesson, and its resources. | Content comes from `course_content`; external links and signed resource URLs open as expected. |  |  |
+| Teacher | Authorized teacher can manage a course | Sign in using an account with trusted `app_metadata.role = 'admin'`; create, save, reopen, and edit a course. | The authorized account can use the teacher studio and saved content persists. |  |  |
+| Security | Student cannot reach teacher pages | Sign in as a student, open `teacher.html` directly, and try the teacher login URL. | The editor remains inaccessible and the page reports that the account is not authorized. |  |  |
+| Security | Teacher A cannot edit teacher B's course | Create a course as teacher A, then sign in as teacher B and try to load and update that course. | Teacher B should be denied access to teacher A's course. **Current implementation does not enforce this:** course rows have no owner and the admin-role policy permits updates to any course. |  |  |
+| Security | Drafts are hidden from students | Save a course from teacher mode and inspect the student course query before publication. | An unpublished draft should not be returned to students. **Current implementation has no draft/published state:** saved rows are readable by authenticated students. |  |  |
+| Security | Progress belongs to its student | Create progress as student A, then query progress as student B using the authenticated client. | Student B cannot read or change student A's progress rows. |  |  |
