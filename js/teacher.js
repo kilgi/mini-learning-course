@@ -15,6 +15,7 @@ let activeCourse = null;
 let originalCourse = null;
 let currentLessonIndex = 0;
 let previewCourse = null;
+let hasRenderedCoursePreview = false;
 
 function setTeacherStatus(message, isError = false) {
 	teacherStatus.textContent = message;
@@ -383,7 +384,7 @@ async function renderCoursePreview(course) {
 	lessons.className = "teacher-preview-lessons";
 	for (const [index, lesson] of course.lessons.entries()) {
 		const item = document.createElement("li");
-		item.className = "teacher-preview-lesson";
+		item.className = hasRenderedCoursePreview ? "teacher-preview-lesson" : "teacher-preview-lesson entrance-once";
 		appendPreviewText(item, "p", `LESSON ${String(index + 1).padStart(2, "0")}`, "eyebrow");
 		appendPreviewText(item, "h3", lesson.title);
 		appendPreviewText(item, "p", lesson.summary || "", "teacher-preview-summary");
@@ -425,6 +426,7 @@ async function renderCoursePreview(course) {
 		lessons.append(item);
 	}
 	preview.append(lessons);
+	hasRenderedCoursePreview = true;
 	document.querySelector("#overview-title").textContent = `${course.title} overview`;
 }
 

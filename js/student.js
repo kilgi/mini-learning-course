@@ -3,6 +3,7 @@ const courseList = document.querySelector("#course-list");
 const catalogStatus = document.querySelector("#catalog-status");
 const lessonView = document.querySelector("#lesson-view");
 const query = new URLSearchParams(window.location.search);
+let hasRenderedCatalog = false;
 
 function lessonUrl(courseId, lessonId) {
 	const params = new URLSearchParams({ course: courseId, lesson: lessonId });
@@ -19,37 +20,30 @@ function appendText(parent, tag, text, className) {
 	return element;
 }
 
-function renderCourse(course, index, progress) {
+function renderCourse(course, index, progress, animateEntrance) {
 	const card = document.createElement("article");
 	const lessonIds = new Set((course.lessons || []).map((lesson) => lesson.id));
 	const completed = new Set(progress.filter((row) => row.course_id === course.id && lessonIds.has(row.lesson_id)).map((row) => row.lesson_id));
 	const total = lessonIds.size;
 	const percent = total ? Math.round(completed.size / total * 100) : 0;
 
-	card.className = "course-card";
-	card.style.setProperty("--order", String(index));
+	card.className = animateEntrance ? "course-card entrance-once" : "course-card";
 	appendText(card, "p", `COURSE ${String(index + 1).padStart(2, "0")}`, "course-index");
 	appendText(card, "h2", course.title || "Untitled course");
 	appendText(card, "p", course.description || "", "course-description");
 	const progressLabel = appendText(card, "p", `Progress: ${completed.size} of ${total} (${percent}%)`, "course-progress-label");
-	const progressBar = document.createElement("div");
+	const progressBar = document.createElement("progress");
 	progressBar.className = "course-progress-track";
-	progressBar.setAttribute("role", "progressbar");
+	progressBar.max = Math.max(total, 1);
+	progressBar.value = completed.size;
 	progressBar.setAttribute("aria-label", `${course.title} progress`);
-	progressBar.setAttribute("aria-valuemin", "0");
-	progressBar.setAttribute("aria-valuemax", String(total));
-	progressBar.setAttribute("aria-valuenow", String(completed.size));
-	const fill = document.createElement("span");
-	fill.className = "course-progress-fill";
-	fill.style.width = `${percent}%`;
-	progressBar.append(fill);
 	card.append(progressBar);
 
 	const list = document.createElement("ol");
 	list.className = "course-lesson-list";
 	(course.lessons || []).forEach((lesson, lessonIndex) => {
 		const row = document.createElement("li");
-		row.className = "course-lesson-row";
+		row.className = animateEntrance ? "course-lesson-row entrance-once" : "course-lesson-row";
 		const link = document.createElement("a");
 		link.href = lessonUrl(course.id, lesson.id);
 		link.textContent = `Lesson ${lessonIndex + 1}: ${lesson.title}`;
@@ -223,7 +217,9 @@ async function initializeStudentPage() {
 	}
 	if (!query.has("lesson")) {
 		if (courses.length) {
-			courseList.replaceChildren(...courses.map((course, index) => renderCourse(course, index, progress)));
+			const animateEntrance = !hasRenderedCatalog;
+			courseList.replaceChildren(...courses.map((course, index) => renderCourse(course, index, progress, animateEntrance)));
+			hasRenderedCatalog = true;
 		} else if (!progressError) {
 			catalogStatus.textContent = "No courses are published yet.";
 			catalogStatus.hidden = false;

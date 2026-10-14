@@ -122,8 +122,7 @@ button:disabled:active {
 }
 
 .auth-pending .catalog-layout,
-.auth-pending .dynamic-lesson,
-.auth-pending .lesson-page {
+.auth-pending .dynamic-lesson {
 	visibility: hidden;
 }
 
@@ -283,9 +282,7 @@ button:disabled:active {
 .public-primary-link,
 .auth-submit,
 .complete-button,
-.course-link,
-.course-feedback-submit,
-.admin-reset-button {
+.course-link {
 	display: inline-flex;
 	min-height: 3rem;
 	align-items: center;
@@ -384,8 +381,7 @@ button:disabled:active {
 }
 
 .auth-intro,
-.auth-panel,
-.admin-panel {
+.auth-panel {
 	min-width: 0;
 	padding: var(--space-8);
 	border-radius: var(--radius-card);
@@ -456,9 +452,7 @@ button:disabled:active {
 .teacher-field input,
 .teacher-field textarea,
 .teacher-field select,
-.teacher-resource-form input,
-.course-feedback-input,
-.admin-editor {
+.teacher-resource-form input {
 	display: block;
 	width: 100%;
 	min-height: 3rem;
@@ -476,22 +470,17 @@ button:disabled:active {
 .teacher-field input:focus,
 .teacher-field textarea:focus,
 .teacher-field select:focus,
-.teacher-resource-form input:focus,
-.course-feedback-input:focus,
-.admin-editor:focus {
+.teacher-resource-form input:focus {
 	outline: 3px solid var(--accent-strong);
 	outline-offset: 2px;
 }
 
 .auth-submit,
-.course-feedback-submit,
-.complete-button,
-.admin-reset-button {
+.complete-button {
 	width: 100%;
 }
 
 .auth-submit:disabled,
-.course-feedback-submit:disabled,
 .complete-button:disabled {
 	opacity: 0.7;
 	cursor: not-allowed;
@@ -591,12 +580,6 @@ button:disabled:active {
 	overflow-wrap: anywhere;
 }
 
-.course-progress {
-	width: 100%;
-	min-width: 0;
-	margin-block: var(--space-2) var(--space-4);
-}
-
 .course-progress-label {
 	margin-bottom: var(--space-2);
 	color: var(--text-muted);
@@ -604,58 +587,25 @@ button:disabled:active {
 }
 
 .course-progress-track {
+	appearance: none;
+	display: block;
 	width: 100%;
 	height: 0.5rem;
+	margin-block: var(--space-2) var(--space-4);
 	overflow: hidden;
+	border: 0;
 	border-radius: var(--radius-control);
 	background: var(--surface-tint);
 }
 
-.course-progress-fill {
-	display: block;
-	width: 0;
-	height: 100%;
+.course-progress-track::-webkit-progress-bar {
 	border-radius: inherit;
+	background: var(--surface-tint);
+}
+
+.course-progress-track::-webkit-progress-value,
+.course-progress-track::-moz-progress-bar {
 	background: var(--accent);
-	transition: width 200ms var(--ease-out);
-}
-
-.course-completion-status {
-	margin: var(--space-2) 0 0;
-	color: var(--text);
-	font-size: 0.875rem;
-	font-weight: 600;
-}
-
-.course-lessons {
-	width: 100%;
-	min-width: 0;
-	margin-bottom: var(--space-4);
-}
-
-.course-lessons summary {
-	display: flex;
-	min-height: 2.75rem;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--space-3);
-	padding-inline: var(--space-1);
-	font-weight: 650;
-	list-style: none;
-	cursor: pointer;
-}
-
-.course-lessons summary::-webkit-details-marker {
-	display: none;
-}
-
-.course-lessons summary::after {
-	color: var(--accent-strong);
-	content: "↓";
-}
-
-.course-lessons[open] summary::after {
-	content: "↑";
 }
 
 .course-lesson-list {
@@ -724,38 +674,8 @@ button:disabled:active {
 	content: "→";
 }
 
-.course-feedback {
-	width: 100%;
-	margin-bottom: var(--space-4);
-	padding: var(--space-4);
-	border-radius: var(--radius-card);
-	background: var(--surface-tint);
-}
-
-.course-feedback-label {
-	display: block;
-	font-weight: 650;
-}
-
-.course-feedback-input {
-	min-height: 7rem;
-	margin-bottom: var(--space-3);
-	resize: vertical;
-}
-
-.course-feedback-status {
-	margin: var(--space-3) 0 0;
-	color: var(--text-muted);
-	font-size: 0.875rem;
-}
-
-.course-feedback-status:empty {
-	display: none;
-}
-
 /* Student lesson reading */
-.dynamic-lesson,
-.lesson-page {
+.dynamic-lesson {
 	width: min(calc(100% - 3rem), 48rem);
 	min-width: 0;
 	margin-inline: auto;
@@ -767,16 +687,6 @@ button:disabled:active {
 	min-height: 2.75rem;
 	align-items: center;
 	margin-bottom: var(--space-6);
-}
-
-.lesson-account-bar {
-	display: flex;
-	min-width: 0;
-	align-items: center;
-	justify-content: space-between;
-	flex-wrap: wrap;
-	gap: var(--space-4);
-	margin-bottom: var(--space-8);
 }
 
 .back-link,
@@ -896,7 +806,7 @@ button:disabled:active {
 	font-size: 0.9375rem;
 }
 
-/* Teacher studio and legacy admin */
+/* Teacher studio */
 .admin-main {
 	min-width: 0;
 	padding-block: var(--space-8) var(--space-16);
@@ -911,8 +821,6 @@ button:disabled:active {
 }
 
 .admin-heading,
-.admin-section-heading,
-.admin-actions,
 .teacher-overview-heading {
 	display: flex;
 	min-width: 0;
@@ -930,64 +838,20 @@ button:disabled:active {
 }
 
 .admin-heading > *,
-.admin-section-heading > *,
 .teacher-overview-heading > * {
 	min-width: 0;
 }
 
 .admin-heading h2,
-.admin-section-heading h2,
 .teacher-overview-heading h2 {
 	margin-bottom: 0;
 	font-size: clamp(1.5rem, 3vw, 2rem);
 	overflow-wrap: anywhere;
 }
 
-.admin-section-heading p,
-.admin-intro,
 .teacher-lessons-heading p {
 	margin-bottom: 0;
 	color: var(--text-muted);
-}
-
-.admin-login {
-	width: min(100%, 30rem);
-	margin-inline: auto;
-}
-
-.admin-panel {
-	margin-top: var(--space-6);
-}
-
-.admin-editor-label {
-	display: block;
-	margin-block: var(--space-4) var(--space-2);
-	font-weight: 650;
-}
-
-.admin-editor {
-	min-height: 24rem;
-	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-	resize: vertical;
-}
-
-.admin-actions {
-	justify-content: flex-end;
-	margin-top: var(--space-4);
-}
-
-.admin-save {
-	width: auto;
-}
-
-.admin-danger-zone {
-	margin-top: var(--space-8);
-	box-shadow: 0 0 0 1px var(--danger);
-}
-
-.admin-reset-button {
-	margin-top: var(--space-4);
-	background: var(--danger);
 }
 
 .admin-status.is-error {
@@ -1040,6 +904,15 @@ button:disabled:active {
 
 .teacher-field input[type="number"] {
 	width: min(100%, 12rem);
+}
+
+.teacher-count-field {
+	width: min(100%, 18rem);
+}
+
+.teacher-count-field input[type="number"] {
+	width: 100%;
+	min-height: 3rem;
 }
 
 .teacher-form {
@@ -1097,6 +970,11 @@ button:disabled:active {
 	min-width: 11rem;
 }
 
+.teacher-form-actions .teacher-step-next {
+	width: min(100%, 20rem);
+	min-height: 3rem;
+}
+
 .teacher-lessons-heading {
 	margin-block: var(--space-6) var(--space-4);
 	padding-top: var(--space-6);
@@ -1110,6 +988,18 @@ button:disabled:active {
 
 .teacher-lessons-heading p {
 	max-width: 65ch;
+}
+
+.teacher-lesson-list {
+	display: grid;
+	width: 100%;
+	min-width: 0;
+	gap: var(--space-4);
+}
+
+.teacher-lesson-list > .teacher-lesson-editor {
+	width: 100%;
+	margin: 0;
 }
 
 .teacher-lesson-editor {
@@ -1242,15 +1132,6 @@ button:disabled:active {
 	overflow-wrap: anywhere;
 }
 
-.redirect-message {
-	width: min(calc(100% - 3rem), 48rem);
-	margin: max(10dvh, var(--space-12)) auto;
-	padding: var(--space-8);
-	border-radius: var(--radius-card);
-	background: var(--surface);
-	box-shadow: var(--shadow-soft), var(--ring);
-}
-
 /* Hover states */
 @media (hover: hover) and (pointer: fine) {
 	a:hover {
@@ -1264,8 +1145,7 @@ button:disabled:active {
 	.auth-submit:hover:not(:disabled),
 	.public-primary-link:hover,
 	.complete-button:hover:not(:disabled),
-	.course-link:hover,
-	.course-feedback-submit:hover:not(:disabled) {
+	.course-link:hover {
 		color: var(--surface);
 		background: var(--accent-hover);
 	}
@@ -1277,53 +1157,52 @@ button:disabled:active {
 		background: var(--surface-tint);
 	}
 
-	.teacher-remove-button:hover,
-	.admin-reset-button:hover:not(:disabled) {
+	.teacher-remove-button:hover {
 		color: var(--surface);
 		background: var(--danger);
 	}
 }
 
 /* First-load entrances */
-.course-card,
-.course-lesson-row,
-.teacher-preview-lesson {
+.course-card.entrance-once,
+.course-lesson-row.entrance-once,
+.teacher-preview-lesson.entrance-once {
 	animation: fade-up 280ms var(--ease-out) both;
 }
 
-.course-card:nth-child(2),
-.course-lesson-row:nth-child(2),
-.teacher-preview-lesson:nth-child(2) {
+.course-card.entrance-once:nth-child(2),
+.course-lesson-row.entrance-once:nth-child(2),
+.teacher-preview-lesson.entrance-once:nth-child(2) {
 	animation-delay: 40ms;
 }
 
-.course-card:nth-child(3),
-.course-lesson-row:nth-child(3),
-.teacher-preview-lesson:nth-child(3) {
+.course-card.entrance-once:nth-child(3),
+.course-lesson-row.entrance-once:nth-child(3),
+.teacher-preview-lesson.entrance-once:nth-child(3) {
 	animation-delay: 80ms;
 }
 
-.course-card:nth-child(4),
-.course-lesson-row:nth-child(4),
-.teacher-preview-lesson:nth-child(4) {
+.course-card.entrance-once:nth-child(4),
+.course-lesson-row.entrance-once:nth-child(4),
+.teacher-preview-lesson.entrance-once:nth-child(4) {
 	animation-delay: 120ms;
 }
 
-.course-card:nth-child(5),
-.course-lesson-row:nth-child(5),
-.teacher-preview-lesson:nth-child(5) {
+.course-card.entrance-once:nth-child(5),
+.course-lesson-row.entrance-once:nth-child(5),
+.teacher-preview-lesson.entrance-once:nth-child(5) {
 	animation-delay: 160ms;
 }
 
-.course-card:nth-child(6),
-.course-lesson-row:nth-child(6),
-.teacher-preview-lesson:nth-child(6) {
+.course-card.entrance-once:nth-child(6),
+.course-lesson-row.entrance-once:nth-child(6),
+.teacher-preview-lesson.entrance-once:nth-child(6) {
 	animation-delay: 200ms;
 }
 
-.course-card:nth-child(n + 7),
-.course-lesson-row:nth-child(n + 7),
-.teacher-preview-lesson:nth-child(n + 7) {
+.course-card.entrance-once:nth-child(n + 7),
+.course-lesson-row.entrance-once:nth-child(n + 7),
+.teacher-preview-lesson.entrance-once:nth-child(n + 7) {
 	animation: none;
 }
 
@@ -1431,8 +1310,7 @@ button:disabled:active {
 	.course-card,
 	.teacher-course-preview,
 	.auth-intro,
-	.auth-panel,
-	.admin-panel {
+	.auth-panel {
 		padding: var(--space-6);
 	}
 
@@ -1450,16 +1328,8 @@ button:disabled:active {
 		padding-top: var(--space-2);
 	}
 
-	.dynamic-lesson,
-	.lesson-page {
+	.dynamic-lesson {
 		padding-block: var(--space-6) var(--space-12);
-	}
-
-	.lesson-account-bar {
-		align-items: flex-start;
-		flex-direction: column;
-		gap: var(--space-2);
-		margin-bottom: var(--space-6);
 	}
 
 	.lesson-navigation {
@@ -1473,7 +1343,6 @@ button:disabled:active {
 	}
 
 	.admin-heading,
-	.admin-section-heading,
 	.teacher-overview-heading {
 		align-items: flex-start;
 		flex-direction: column;
@@ -1492,9 +1361,6 @@ button:disabled:active {
 		grid-column: auto;
 	}
 
-	.admin-actions {
-		align-items: stretch;
-	}
 }
 
 @media (max-width: 32.5rem) {
@@ -1506,8 +1372,7 @@ button:disabled:active {
 	.auth-header,
 	.auth-layout,
 	.catalog-heading,
-	.dynamic-lesson,
-	.lesson-page {
+	.dynamic-lesson {
 		width: calc(100% - 2rem);
 	}
 
@@ -1545,7 +1410,6 @@ button:disabled:active {
 
 	.auth-intro,
 	.auth-panel,
-	.admin-panel,
 	.course-card,
 	.teacher-course-preview {
 		padding: var(--space-4);
@@ -1596,9 +1460,6 @@ button:disabled:active {
 		flex-direction: column;
 	}
 
-	.admin-editor {
-		min-height: 20rem;
-	}
 }
 
 /* Reduced motion */
@@ -1613,9 +1474,9 @@ button:disabled:active {
 		transform: none;
 	}
 
-	.course-card,
-	.course-lesson-row,
-	.teacher-preview-lesson {
+	.course-card.entrance-once,
+	.course-lesson-row.entrance-once,
+	.teacher-preview-lesson.entrance-once {
 		animation-name: fade-in;
 	}
 
