@@ -87,6 +87,23 @@
             </div>
           </div>
           <article class="teacher-course-preview" id="teacher-course-preview"></article>
+          <section class="teacher-danger-zone" id="delete-course-zone" hidden aria-labelledby="delete-course-heading">
+            <div>
+              <h3 id="delete-course-heading">Delete course</h3>
+              <p>Permanently remove this course and its associated data.</p>
+            </div>
+            <button class="teacher-delete-button" id="start-delete-course" type="button">Delete course</button>
+          </section>
+          <form class="teacher-delete-confirmation" id="delete-course-confirmation" hidden novalidate>
+            <p id="delete-course-warning"></p>
+            <label class="teacher-field" for="delete-course-title">Type the course title exactly to confirm
+              <input id="delete-course-title" autocomplete="off" required />
+            </label>
+            <div class="teacher-delete-actions">
+              <button class="teacher-secondary-button" id="cancel-delete-course" type="button">Cancel</button>
+              <button class="teacher-delete-button" id="confirm-delete-course" type="button" disabled>Delete permanently</button>
+            </div>
+          </form>
         </section>
       </section>
       <section class="teacher-access" id="teacher-access" hidden>

@@ -10,6 +10,10 @@ const courseDetailsStep = document.querySelector("#course-details-step");
 const lessonEditorStep = document.querySelector("#lesson-editor-step");
 const teacherEditorView = document.querySelector("#teacher-editor-view");
 const teacherOverview = document.querySelector("#teacher-overview");
+const deleteCourseZone = document.querySelector("#delete-course-zone");
+const deleteCourseConfirmation = document.querySelector("#delete-course-confirmation");
+const deleteCourseTitle = document.querySelector("#delete-course-title");
+const confirmDeleteCourseButton = document.querySelector("#confirm-delete-course");
 let savedCourses = [];
 let currentUserId = null;
 let activeCourse = null;
@@ -286,11 +290,11 @@ function createCourse() {
 }
 
 async function loadCourses() {
-	const { data, error } = await supabaseClient.from("course_content").select("id, content, published").eq("teacher_id", currentUserId).order("updated_at", { ascending: false });
+	const { data, error } = await supabaseClient.from("course_content").select("id, content, published, teacher_id").eq("teacher_id", currentUserId).order("updated_at", { ascending: false });
 	if (error) {
 		throw error;
 	}
-	savedCourses = (data || []).map((row) => ({ ...row.content, id: row.id, published: row.published }));
+	savedCourses = (data || []).map((row) => ({ ...row.content, id: row.id, published: row.published, teacher_id: row.teacher_id }));
 	refreshPicker();
 }
 
@@ -356,6 +360,7 @@ async function saveCourse() {
 	try {
 		const content = { ...activeCourse };
 		delete content.published;
+		delete content.teacher_id;
 		const { error } = await supabaseClient.from("course_content").upsert({
 			id: activeCourse.id,
 			content,
@@ -407,6 +412,11 @@ function appendPreviewText(parent, tag, text, className) {
 async function renderCoursePreview(course) {
 	teacherPageTitle.textContent = "Course overview.";
 	previewCourse = course;
+	const isOwnedCourse = course.teacher_id === currentUserId && savedCourses.some((savedCourse) => savedCourse.id === course.id && savedCourse.teacher_id === currentUserId);
+	deleteCourseZone.hidden = !isOwnedCourse;
+	deleteCourseConfirmation.hidden = true;
+	deleteCourseTitle.value = "";
+	confirmDeleteCourseButton.disabled = true;
 	const publishButton = document.querySelector("#toggle-publish");
 	publishButton.textContent = course.published ? "Unpublish course" : "Publish course";
 	teacherEditorView.hidden = true;
@@ -465,6 +475,96 @@ async function renderCoursePreview(course) {
 	hasRenderedCoursePreview = true;
 	document.querySelector("#overview-title").textContent = `${course.title} overview`;
 }
+
+function getCourseFilePaths(course) {
+	return [...new Set((course.lessons || []).flatMap((lesson) => lesson.resources || [])
+		.map((resource) => resource.path)
+		.filter((path) => typeof path === "string" && path.length > 0))];
+}
+
+function canDeletePreviewCourse() {
+	return Boolean(previewCourse
+		&& previewCourse.teacher_id === currentUserId
+		&& savedCourses.some((course) => course.id === previewCourse.id && course.teacher_id === currentUserId));
+}
+
+document.querySelector("#start-delete-course").addEventListener("click", () => {
+	if (!canDeletePreviewCourse()) {
+		return;
+	}
+	document.querySelector("#delete-course-warning").textContent = `This will permanently delete “${previewCourse.title}”, its uploaded files, and all student progress and feedback for this course.`;
+	deleteCourseZone.hidden = true;
+	deleteCourseConfirmation.hidden = false;
+	deleteCourseTitle.value = "";
+	confirmDeleteCourseButton.disabled = true;
+	deleteCourseTitle.focus();
+});
+
+deleteCourseTitle.addEventListener("input", () => {
+	confirmDeleteCourseButton.disabled = deleteCourseTitle.value !== previewCourse?.title;
+});
+
+document.querySelector("#cancel-delete-course").addEventListener("click", () => {
+	deleteCourseConfirmation.hidden = true;
+	deleteCourseTitle.value = "";
+	confirmDeleteCourseButton.disabled = true;
+	deleteCourseZone.hidden = !canDeletePreviewCourse();
+});
+
+confirmDeleteCourseButton.addEventListener("click", async () => {
+	if (!canDeletePreviewCourse() || deleteCourseTitle.value !== previewCourse.title) {
+		return;
+	}
+	const course = previewCourse;
+	const startButton = document.querySelector("#start-delete-course");
+	const cancelButton = document.querySelector("#cancel-delete-course");
+	let fileDeletionFailed = false;
+	confirmDeleteCourseButton.disabled = true;
+	confirmDeleteCourseButton.textContent = "Deleting...";
+	startButton.disabled = true;
+	cancelButton.disabled = true;
+	deleteCourseTitle.disabled = true;
+	setTeacherStatus("Deleting the course and its related data...");
+	try {
+		const paths = getCourseFilePaths(course);
+		if (paths.length) {
+			const { error } = await supabaseClient.storage.from("course-materials").remove(paths);
+			if (error) {
+				fileDeletionFailed = true;
+				throw error;
+			}
+		}
+		const { error } = await supabaseClient.rpc("delete_owned_course", { p_course_id: course.id });
+		if (error) {
+			throw error;
+		}
+		savedCourses = savedCourses.filter((savedCourse) => savedCourse.id !== course.id);
+		refreshPicker();
+		activeCourse = null;
+		originalCourse = null;
+		previewCourse = null;
+		teacherOverview.hidden = true;
+		teacherEditorView.hidden = false;
+		courseForm.hidden = true;
+		deleteCourseZone.hidden = true;
+		deleteCourseConfirmation.hidden = true;
+		setTeacherStatus("The course, its files, and all student progress and feedback were permanently deleted.");
+	} catch {
+		if (fileDeletionFailed) {
+			setTeacherStatus("File removal did not complete, so the course and its student data were not deleted. Some files may already have been removed; check access and try again.", true);
+		} else {
+			setTeacherStatus("The course record and its student data could not be deleted. Its files may already have been removed; try again or contact the project admin.", true);
+		}
+	} finally {
+		if (!deleteCourseConfirmation.hidden) {
+			confirmDeleteCourseButton.disabled = deleteCourseTitle.value !== previewCourse?.title;
+			confirmDeleteCourseButton.textContent = "Delete permanently";
+			startButton.disabled = false;
+			cancelButton.disabled = false;
+			deleteCourseTitle.disabled = false;
+		}
+	}
+});
 
 document.querySelector("#toggle-publish").addEventListener("click", async (event) => {
 	if (!previewCourse) {

@@ -294,4 +294,44 @@ begin
 end
 $$;
 
+create or replace function public.delete_owned_course(p_course_id text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $function$
+declare
+    course_owner uuid;
+begin
+    select course.teacher_id
+    into course_owner
+    from public.course_content as course
+    where course.id = p_course_id
+    for update;
+
+    if not found then
+        raise exception 'Course not found or you do not have permission to delete it.'
+            using errcode = '42501';
+    end if;
+
+    if course_owner is distinct from auth.uid()
+        and (auth.jwt() -> 'app_metadata' ->> 'role') is distinct from 'admin' then
+        raise exception 'Course not found or you do not have permission to delete it.'
+            using errcode = '42501';
+    end if;
+
+    delete from public.lesson_progress
+    where course_id = p_course_id;
+
+    delete from public.course_feedback
+    where course_id = p_course_id;
+
+    delete from public.course_content
+    where id = p_course_id;
+end
+$function$;
+
+revoke all on function public.delete_owned_course(text) from public, anon, authenticated;
+grant execute on function public.delete_owned_course(text) to authenticated;
+
 commit;

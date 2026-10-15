@@ -97,7 +97,7 @@ Open `http://localhost:8000/`. Configure the Supabase project and Auth URLs befo
 
 ## Security
 
-The browser uses only the public publishable/anon key. RLS policies in `docs/ownership-migration.sql` restrict course writes to the owner in `teacher_id` (admins may manage any course) and hide unpublished drafts from students. Uploaded files are stored under the owning teacher's user-ID folder; users can read files referenced by courses they can see. Teachers can read progress for courses they own, and only admins can delete progress or feedback. RLS is the authorization boundary; the teacher-page role check controls only the interface. Never commit service-role keys, passwords, or private account information. See [docs/supabase-setup.md](docs/supabase-setup.md) and [docs/ownership-migration.sql](docs/ownership-migration.sql).
+The browser uses only the public publishable/anon key. RLS policies in `docs/ownership-migration.sql` restrict course writes and deletion to the owner in `teacher_id` (admins may manage any course) and hide unpublished drafts from students. Deleting a course removes its progress and feedback; the studio removes its uploaded files first. Uploaded files are stored under the owning teacher's user-ID folder; users can read files referenced by courses they can see. Teachers can read progress for courses they own, and only admins can delete progress or feedback. RLS is the authorization boundary; the teacher-page role check controls only the interface. Never commit service-role keys, passwords, or private account information. See [docs/supabase-setup.md](docs/supabase-setup.md) and [docs/ownership-migration.sql](docs/ownership-migration.sql).
 
 ## More information
 

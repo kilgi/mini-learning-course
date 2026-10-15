@@ -24,6 +24,8 @@ New courses default to `published = false`, so the student catalog query does no
 
 Uploaded files use the path `<teacher-user-id>/<course-id>/<random-name>` in the private `course-materials` bucket. Teachers can upload and delete only under their own user-ID folder. Authenticated users can read a file when it is referenced by a course they can see: students can read files for published courses, teachers can also read files for their own drafts, and admins can read files for any course. The browser uses short-lived signed URLs.
 
+The teacher studio offers deletion only for a saved course whose `teacher_id` matches the signed-in teacher. The teacher must type the course title exactly to confirm. The browser first removes the course's referenced Storage files, then calls `delete_owned_course`; that database function verifies the owner or admin role and deletes the course's progress, feedback, and course row in one database transaction. If Storage removal fails, the database function is not called.
+
 ## Data Flow
 
 1. The login page signs users in through Supabase Auth. Teacher login checks the trusted role claim and routes authorized accounts to the teacher studio.

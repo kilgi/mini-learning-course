@@ -178,7 +178,8 @@ button:disabled:active {
 
 .sign-out-button,
 .teacher-secondary-button,
-.teacher-remove-button {
+.teacher-remove-button,
+.teacher-delete-button {
 	display: inline-flex;
 	min-height: 2.75rem;
 	align-items: center;
@@ -199,6 +200,11 @@ button:disabled:active {
 
 .teacher-remove-button {
 	color: var(--danger);
+}
+
+.teacher-delete-button {
+	color: var(--danger);
+	box-shadow: 0 0 0 1px var(--danger);
 }
 
 /* Public introduction */
@@ -1072,6 +1078,46 @@ button:disabled:active {
 	border-radius: var(--radius-card);
 	background: var(--surface);
 	box-shadow: var(--shadow-soft), var(--ring);
+}
+
+.teacher-danger-zone,
+.teacher-delete-confirmation {
+	width: min(100%, 52rem);
+	min-width: 0;
+	margin: var(--space-8) auto 0;
+	padding-top: var(--space-6);
+	border-top: 1px solid var(--line);
+}
+
+.teacher-danger-zone {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--space-4);
+}
+
+.teacher-danger-zone h3 {
+	margin-bottom: var(--space-1);
+	font-size: 1.125rem;
+}
+
+.teacher-danger-zone p,
+.teacher-delete-confirmation > p {
+	margin-bottom: 0;
+	color: var(--text-muted);
+}
+
+.teacher-delete-confirmation .teacher-field {
+	margin-top: var(--space-4);
+}
+
+.teacher-delete-actions {
+	display: flex;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+	margin-top: var(--space-4);
 }
 
 .teacher-preview-title {
