@@ -28,6 +28,27 @@ function newId(prefix) {
 	return `${prefix}-${crypto.randomUUID()}`;
 }
 
+function newCourseId(title) {
+	const slug = title.normalize("NFKD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "")
+		.slice(0, 60)
+		.replace(/-+$/g, "") || "course";
+	return `${slug}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function getCourseSaveErrorMessage(error) {
+	if (error?.code === "23505") {
+		return "A course with that ID already exists. Start a new course and try again.";
+	}
+	if (error?.code === "42501") {
+		return "Supabase did not allow this save. Confirm you own this course and try again.";
+	}
+	return "The course could not be saved. Check your connection and try again.";
+}
+
 function createLessonDraft() {
 	return { id: newId("lesson"), title: "", summary: "", sections: [{ heading: "Lesson", paragraphs: [] }], resources: [] };
 }
@@ -250,7 +271,7 @@ function editCourse(course) {
 
 function createCourse() {
 	teacherPageTitle.textContent = "Build a course.";
-	activeCourse = { id: newId("course"), title: "", description: "", lessons: [] };
+	activeCourse = { id: "", title: "", description: "", lessons: [], published: false };
 	originalCourse = null;
 	coursePicker.value = "";
 	document.querySelector("#course-title").value = "";
@@ -298,6 +319,9 @@ document.querySelector("#course-next").addEventListener("click", () => {
 		setTeacherStatus("Add a course name, description, and a lesson count from 1 to 50.", true);
 		return;
 	}
+	if (!activeCourse.id) {
+		activeCourse.id = newCourseId(activeCourse.title);
+	}
 	showLesson(0);
 	setTeacherStatus("");
 });
@@ -330,17 +354,23 @@ async function saveCourse() {
 	saveButton.disabled = true;
 	saveButton.textContent = "Saving...";
 	try {
-		const { published, ...content } = activeCourse;
+		const content = { ...activeCourse };
+		delete content.published;
 		const { error } = await supabaseClient.from("course_content").upsert({
 			id: activeCourse.id,
 			content,
 			teacher_id: currentUserId,
-			published: published === true,
 			updated_at: new Date().toISOString()
 		}, { onConflict: "id" });
 		if (error) {
 			throw error;
 		}
+		const savedCourse = { ...activeCourse };
+		savedCourses = originalCourse
+			? savedCourses.map((course) => course.id === savedCourse.id ? savedCourse : course)
+			: [...savedCourses, savedCourse];
+		activeCourse = savedCourse;
+		originalCourse = { ...savedCourse };
 		const currentPaths = new Set(activeCourse.lessons.flatMap((lesson) => lesson.resources.map((resource) => resource.path).filter(Boolean)));
 		const removedPaths = (originalCourse?.lessons || []).flatMap((lesson) => lesson.resources || []).map((resource) => resource.path).filter((path) => path && !currentPaths.has(path));
 		if (removedPaths.length) {
@@ -355,7 +385,7 @@ async function saveCourse() {
 		}
 		window.location.replace(`teacher.html?view=overview&course=${encodeURIComponent(activeCourse.id)}`);
 	} catch (error) {
-		setTeacherStatus(error.message || "Course could not be saved. Check the database and storage setup.", true);
+		setTeacherStatus(getCourseSaveErrorMessage(error), true);
 	} finally {
 		saveButton.disabled = false;
 		saveButton.textContent = "Save course";
@@ -454,6 +484,12 @@ document.querySelector("#toggle-publish").addEventListener("click", async (event
 	}
 	previewCourse = { ...previewCourse, published };
 	savedCourses = savedCourses.map((course) => course.id === previewCourse.id ? previewCourse : course);
+	if (activeCourse?.id === previewCourse.id) {
+		activeCourse = { ...activeCourse, published };
+	}
+	if (originalCourse?.id === previewCourse.id) {
+		originalCourse = { ...originalCourse, published };
+	}
 	button.textContent = published ? "Unpublish course" : "Publish course";
 	button.disabled = false;
 	setTeacherStatus(published ? "Course published." : "Course unpublished.");

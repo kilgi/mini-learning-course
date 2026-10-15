@@ -41,6 +41,24 @@ alter table public.course_content enable row level security;
 alter table public.lesson_progress enable row level security;
 alter table public.course_feedback enable row level security;
 
+alter table public.lesson_progress
+    drop constraint if exists lesson_progress_course_lesson_allowed_check;
+
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint
+        where conname = 'course_feedback_feedback_max_length_check'
+            and conrelid = 'public.course_feedback'::regclass
+    ) then
+        alter table public.course_feedback
+            add constraint course_feedback_feedback_max_length_check
+            check (char_length(feedback) <= 2000);
+    end if;
+end
+$$;
+
 do $$
 declare
     policy_row record;
@@ -254,5 +272,26 @@ create policy "Teachers can delete owned course materials"
             )
         )
     );
+
+do $$
+declare
+    secured_table_count integer;
+begin
+    select count(*) into secured_table_count
+    from pg_catalog.pg_class as relation
+    join pg_catalog.pg_namespace as schema on schema.oid = relation.relnamespace
+    where relation.relkind in ('r', 'p')
+        and relation.relrowsecurity
+        and (schema.nspname, relation.relname) in (
+            ('public', 'course_content'),
+            ('public', 'lesson_progress'),
+            ('public', 'course_feedback')
+        );
+
+    if secured_table_count <> 3 then
+        raise exception 'RLS must be enabled on all three application tables.';
+    end if;
+end
+$$;
 
 commit;

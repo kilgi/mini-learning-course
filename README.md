@@ -35,14 +35,18 @@ A Supabase-backed course app with student and teacher modes. Teachers create cou
 1. Create a project in the [Supabase dashboard](https://supabase.com/dashboard) and enable Email under **Authentication > Providers**.
 2. Copy the project URL and public publishable key (or legacy anon key) from the project's API settings. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in `js/supabase-config.js`. These values are used by browser code; never put a service-role or secret key there.
 3. In the Supabase SQL Editor, run every SQL block in `docs/supabase-setup.md` in the order shown. This creates the `lesson_progress`, `course_feedback`, and `course_content` tables and their initial policies. Run the SQL only, not the surrounding Markdown.
-4. After all three tables exist, run `docs/security-fix.sql` in the SQL Editor. It applies the final RLS policies and constraints and configures the private `course-materials` bucket.
-5. Create a teacher's Supabase Auth account in **Authentication > Users**. Using trusted dashboard tooling or a server-side Auth Admin API, set its `app_metadata` role to `admin`:
+4. After all three tables exist, run `docs/ownership-migration.sql` in the SQL Editor as the final SQL step. It sets course ownership and publication rules, installs the final RLS policies and constraints, and configures the private `course-materials` bucket. Assign existing courses' `teacher_id` values manually as described in `docs/supabase-setup.md`, then rerun the migration if needed to enforce `NOT NULL`.
+5. Create a teacher in **Authentication > Users** with **Auto Confirm** enabled. Then run this in the SQL Editor, replacing the example email with the teacher's account email:
 
-   ```json
-   { "role": "admin" }
+   ```sql
+   update auth.users
+   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"teacher"}'::jsonb
+   where email = 'teacher@example.com';
    ```
 
-   Do not set this role from browser code or user-editable metadata. After changing the role, sign out and back in so the account receives the updated claim. Students can create accounts from the student sign-in page; only accounts with the trusted role can use teacher mode.
+   Sign out of the teacher account and sign back in to refresh its role claim. Students can create accounts from the student sign-in page.
+
+   **Admin role:** Reserve `admin` for the project owner only.
 6. In **Authentication > URL Configuration**, set the **Site URL** to `https://kilgi.github.io/mini-learning-course/` for the deployed site. Add the deployed callback pattern and the local URLs you use to **Redirect URLs**:
 
    ```text
@@ -78,7 +82,7 @@ Open `http://localhost:8000/`. Configure the Supabase project and Auth URLs befo
 │   ├── lesson.png
 │   ├── mobile.png
 │   ├── overview.png
-│   ├── security-fix.sql
+│   ├── ownership-migration.sql
 │   └── supabase-setup.md
 ├── js/
 │   ├── auth.js
@@ -93,7 +97,7 @@ Open `http://localhost:8000/`. Configure the Supabase project and Auth URLs befo
 
 ## Security
 
-The browser uses only the public publishable/anon key. Anonymous access is revoked from the application tables, and RLS policies control authenticated access. Authenticated users can read course content and course materials. Students can read and insert their own progress; trusted admins can read or delete progress. Users can read, insert, and update their own feedback; trusted admins can delete feedback. A trusted `app_metadata.role = 'admin'` claim allows course-content writes and Storage uploads/deletions. The current policies do not assign courses to individual teachers: any account with that trusted role can update any course row. The teacher-page role check controls the UI, but RLS is the database authorization boundary. Never commit service-role keys, passwords, or private account information. See [docs/supabase-setup.md](docs/supabase-setup.md) and [docs/security-fix.sql](docs/security-fix.sql).
+The browser uses only the public publishable/anon key. RLS policies in `docs/ownership-migration.sql` restrict course writes to the owner in `teacher_id` (admins may manage any course) and hide unpublished drafts from students. Uploaded files are stored under the owning teacher's user-ID folder; users can read files referenced by courses they can see. Teachers can read progress for courses they own, and only admins can delete progress or feedback. RLS is the authorization boundary; the teacher-page role check controls only the interface. Never commit service-role keys, passwords, or private account information. See [docs/supabase-setup.md](docs/supabase-setup.md) and [docs/ownership-migration.sql](docs/ownership-migration.sql).
 
 ## More information
 
