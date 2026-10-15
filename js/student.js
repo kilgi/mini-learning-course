@@ -201,7 +201,7 @@ async function initializeStudentPage() {
 	}
 
 	const [{ data: rows, error: coursesError }, { data: progressRows, error: progressError }] = await Promise.all([
-		supabaseClient.from("course_content").select("id, content").order("updated_at", { ascending: false }),
+		supabaseClient.from("course_content").select("id, content").eq("published", true).order("updated_at", { ascending: false }),
 		supabaseClient.from("lesson_progress").select("course_id, lesson_id").eq("user_id", user.id)
 	]);
 	if (coursesError) {

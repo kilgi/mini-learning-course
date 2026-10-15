@@ -11,6 +11,7 @@ const lessonEditorStep = document.querySelector("#lesson-editor-step");
 const teacherEditorView = document.querySelector("#teacher-editor-view");
 const teacherOverview = document.querySelector("#teacher-overview");
 let savedCourses = [];
+let currentUserId = null;
 let activeCourse = null;
 let originalCourse = null;
 let currentLessonIndex = 0;
@@ -174,7 +175,7 @@ function renderLessons(index) {
 		setTeacherStatus("Uploading course material...");
 		try {
 			const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-			const path = `${activeCourse.id}/${lesson.id}/${crypto.randomUUID()}-${safeName}`;
+			const path = `${currentUserId}/${activeCourse.id}/${crypto.randomUUID()}-${safeName}`;
 			const { error } = await supabaseClient.storage.from("course-materials").upload(path, file, { upsert: false, contentType: file.type || "application/octet-stream" });
 			if (error) {
 				throw error;
@@ -264,11 +265,11 @@ function createCourse() {
 }
 
 async function loadCourses() {
-	const { data, error } = await supabaseClient.from("course_content").select("id, content").order("updated_at", { ascending: false });
+	const { data, error } = await supabaseClient.from("course_content").select("id, content, published").eq("teacher_id", currentUserId).order("updated_at", { ascending: false });
 	if (error) {
 		throw error;
 	}
-	savedCourses = (data || []).map((row) => ({ ...row.content, id: row.id }));
+	savedCourses = (data || []).map((row) => ({ ...row.content, id: row.id, published: row.published }));
 	refreshPicker();
 }
 
@@ -329,9 +330,12 @@ async function saveCourse() {
 	saveButton.disabled = true;
 	saveButton.textContent = "Saving...";
 	try {
+		const { published, ...content } = activeCourse;
 		const { error } = await supabaseClient.from("course_content").upsert({
 			id: activeCourse.id,
-			content: activeCourse,
+			content,
+			teacher_id: currentUserId,
+			published: published === true,
 			updated_at: new Date().toISOString()
 		}, { onConflict: "id" });
 		if (error) {
@@ -373,6 +377,8 @@ function appendPreviewText(parent, tag, text, className) {
 async function renderCoursePreview(course) {
 	teacherPageTitle.textContent = "Course overview.";
 	previewCourse = course;
+	const publishButton = document.querySelector("#toggle-publish");
+	publishButton.textContent = course.published ? "Unpublish course" : "Publish course";
 	teacherEditorView.hidden = true;
 	teacherOverview.hidden = false;
 	const preview = document.querySelector("#teacher-course-preview");
@@ -430,6 +436,29 @@ async function renderCoursePreview(course) {
 	document.querySelector("#overview-title").textContent = `${course.title} overview`;
 }
 
+document.querySelector("#toggle-publish").addEventListener("click", async (event) => {
+	if (!previewCourse) {
+		return;
+	}
+	const button = event.currentTarget;
+	button.disabled = true;
+	const published = !previewCourse.published;
+	const { error } = await supabaseClient.from("course_content")
+		.update({ published, updated_at: new Date().toISOString() })
+		.eq("id", previewCourse.id)
+		.eq("teacher_id", currentUserId);
+	if (error) {
+		setTeacherStatus(error.message || "Publication status could not be changed.", true);
+		button.disabled = false;
+		return;
+	}
+	previewCourse = { ...previewCourse, published };
+	savedCourses = savedCourses.map((course) => course.id === previewCourse.id ? previewCourse : course);
+	button.textContent = published ? "Unpublish course" : "Publish course";
+	button.disabled = false;
+	setTeacherStatus(published ? "Course published." : "Course unpublished.");
+});
+
 document.querySelector("#edit-preview-course").addEventListener("click", () => {
 	if (previewCourse) {
 		window.location.assign(`teacher.html?edit=${encodeURIComponent(previewCourse.id)}`);
@@ -451,7 +480,7 @@ async function initializeTeacherPage() {
 	}
 	const { data, error } = await supabaseClient.auth.getSession();
 	const user = data.session?.user;
-	if (error || !user || user.app_metadata?.role !== "admin") {
+	if (error || !user || !["teacher", "admin"].includes(user.app_metadata?.role)) {
 		teacherWorkspace.hidden = true;
 		teacherAccess.hidden = false;
 		document.querySelector("#teacher-access-message").textContent = user ? "This account is not authorized to create courses." : "Sign in with an authorized teacher account to create and manage courses.";
@@ -459,6 +488,7 @@ async function initializeTeacherPage() {
 		setTeacherStatus("");
 		return;
 	}
+	currentUserId = user.id;
 	document.querySelector("#teacher-email").textContent = user.email || "Teacher";
 	document.querySelector("#teacher-account").hidden = false;
 	teacherWorkspace.hidden = false;

@@ -8,6 +8,7 @@ const nameField = document.querySelector("#name-field");
 const nameInput = document.querySelector("#display-name");
 const modeButtons = [...document.querySelectorAll("[data-auth-mode]")];
 const isTeacherLogin = new URLSearchParams(window.location.search).get("role") === "teacher";
+const isTeacherRole = (role) => role === "teacher" || role === "admin";
 let authMode = "signin";
 
 if (isTeacherLogin) {
@@ -90,7 +91,7 @@ authForm.addEventListener("submit", async (event) => {
 			if (error) {
 				throw error;
 			}
-			if (isTeacherLogin && data.user?.app_metadata?.role !== "admin") {
+			if (isTeacherLogin && !isTeacherRole(data.user?.app_metadata?.role)) {
 				await supabaseClient.auth.signOut();
 				const roleError = new Error("Teacher role required.");
 				roleError.code = "teacher_role_required";
@@ -123,7 +124,7 @@ if (!supabaseClient) {
 		if (!data.session) {
 			return;
 		}
-		if (isTeacherLogin && data.session.user.app_metadata?.role !== "admin") {
+		if (isTeacherLogin && !isTeacherRole(data.session.user.app_metadata?.role)) {
 			await supabaseClient.auth.signOut();
 			authMessage.textContent = "This account is not authorized as a teacher. Sign in with an authorized teacher account.";
 			authMessage.hidden = false;

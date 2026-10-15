@@ -78,7 +78,7 @@ create policy "Users can update their own course feedback"
 
 ## Teacher access, course content, and files
 
-Create the teacher account in Supabase Dashboard under Authentication with a strong, unique password. Set the user's `app_metadata.role` to `admin` using trusted dashboard tooling or a server-side Supabase Auth Admin API. This trusted role protects course editing and file uploads. Never set this role from the browser or store the password or a service-role key in this repository.
+Create teacher accounts in Supabase Dashboard under Authentication with strong, unique passwords. Set each user's `app_metadata.role` to `teacher` or `admin` using trusted dashboard tooling or a server-side Supabase Auth Admin API. This trusted role protects course editing and file uploads. Never set this role from the browser or store a password or service-role key in this repository.
 
 Create the course content table in the Supabase SQL Editor:
 
@@ -101,10 +101,10 @@ create policy "Authenticated users can read course content"
   using (true);
 ```
 
-After creating all three application tables (`course_content`, `lesson_progress`, and `course_feedback`), run [`security-fix.sql`](security-fix.sql) in the SQL Editor. It enables RLS on those tables, removes the old fixed lesson-ID constraint, adds the feedback length constraint, and installs the admin-only policies using the verified `app_metadata.role` claim. It also creates a private `course-materials` Storage bucket. Authenticated learners can read course materials; only trusted admins can upload or delete them.
+After creating all three application tables (`course_content`, `lesson_progress`, and `course_feedback`), run [`security-fix.sql`](security-fix.sql) and then [`ownership-migration.sql`](ownership-migration.sql) in the SQL Editor. For an existing project where `security-fix.sql` has already run, run only `ownership-migration.sql`. Do not run `security-fix.sql` after the ownership migration because it reinstalls the older policies. The ownership migration replaces the application policies, adds per-course ownership and publication state, and configures the private `course-materials` Storage bucket. Existing courses are initially unpublished. If the migration reports that some `teacher_id` values are null, assign each legacy course to its teacher in the SQL Editor (for example, `update public.course_content set teacher_id = '<teacher-auth-user-uuid>' where id = '<course-id>';`), then rerun the ownership migration to enforce `NOT NULL`.
 
-The teacher studio stores each course as JSONB in `course_content`. Each course can contain lessons, lesson text, external links, and uploaded PDF or Word documents. Uploaded files are stored in the private Supabase Storage bucket and delivered to students with short-lived signed URLs. The configured upload limit is 20 MB per file.
+The teacher studio stores each course as JSONB in `course_content`; `teacher_id` and `published` are table columns. Teachers can manage only their own courses, while admins can manage any course. Each course can contain lessons, lesson text, external links, and uploaded PDF or Word documents. Uploaded files are stored under `<teacher-user-id>/<course-id>/<random-name>` in the private bucket and delivered to users who can see the course with short-lived signed URLs. The configured upload limit is 20 MB per file. Existing files with the old path format remain readable when referenced by a visible course, but only admins can delete them; migrate them under the new path format if teacher-managed deletion is needed.
 
 The old progress stored in this browser's `localStorage` is not imported: it has no verified account owner. Clearing browser data signs a user out, but after signing back in, progress remains in the Supabase database. Course and lesson content is available to signed-in learners; Supabase policies protect learner progress and teacher-only writes.
 
-Supabase Auth may need a token refresh after changing `app_metadata`; sign out and back in before testing the admin role. The database policies, not the client-side admin check, are the authorization boundary.
+Supabase Auth may need a token refresh after changing `app_metadata`; sign out and back in before testing a teacher or admin role. The database policies, not the client-side role check, are the authorization boundary.
