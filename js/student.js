@@ -4,8 +4,25 @@ const catalogStatus = document.querySelector("#catalog-status");
 const lessonView = document.querySelector("#lesson-view");
 const continueBanner = document.querySelector("#continue-banner");
 const continueCourseLink = document.querySelector("#continue-course-link");
+const lessonLayout = document.querySelector(".lesson-layout");
+const lessonOutline = document.querySelector(".course-outline");
+const lessonOutlineDisclosure = document.querySelector(".course-outline-disclosure");
+const lessonCard = document.querySelector(".lesson-card");
+const desktopLessonLayout = window.matchMedia("(min-width: 64rem)");
 const query = new URLSearchParams(window.location.search);
 let hasRenderedCatalog = false;
+
+function syncLessonLayoutOrder() {
+	if (desktopLessonLayout.matches) {
+		lessonLayout.prepend(lessonCard);
+		lessonLayout.append(lessonOutline);
+	} else {
+		lessonLayout.prepend(lessonOutlineDisclosure);
+		lessonLayout.append(lessonCard);
+	}
+}
+
+desktopLessonLayout.addEventListener("change", syncLessonLayoutOrder);
 
 function lessonUrl(courseId, lessonId) {
 	const params = new URLSearchParams({ course: courseId, lesson: lessonId });
@@ -200,6 +217,7 @@ async function renderSelectedLesson(courses, progress, user) {
 	catalog.hidden = true;
 	lessonView.hidden = false;
 	document.body.classList.add("lesson-page");
+	syncLessonLayoutOrder();
 	document.title = `${lesson.title} | ${course.title}`;
 	document.querySelector("#lesson-number").textContent = `LESSON ${String(lessonIndex + 1).padStart(2, "0")} / ${String(course.lessons.length).padStart(2, "0")}`;
 	document.querySelector("#lesson-title").textContent = lesson.title;
@@ -216,11 +234,22 @@ async function renderSelectedLesson(courses, progress, user) {
 	const completeButton = document.querySelector("#complete-lesson");
 	const status = document.querySelector("#lesson-status");
 	const completed = new Set(progress.filter((row) => row.course_id === course.id).map((row) => row.lesson_id));
+	const nextLesson = course.lessons[lessonIndex + 1];
+	const nextLink = document.querySelector("#next-lesson");
+	const courseCompleteMessage = document.createElement("p");
+	courseCompleteMessage.className = "course-complete-message";
+	courseCompleteMessage.setAttribute("role", "status");
+	courseCompleteMessage.setAttribute("aria-live", "polite");
+	courseCompleteMessage.textContent = "Course complete ✓";
+	courseCompleteMessage.hidden = true;
+	document.querySelector(".lesson-actions").before(courseCompleteMessage);
 	function refreshCompletion() {
 		const done = completed.has(lesson.id);
 		completeButton.disabled = done;
 		completeButton.setAttribute("aria-pressed", String(done));
-		completeButton.textContent = done ? "Lesson completed" : "Mark lesson complete";
+		completeButton.textContent = done ? "Completed ✓" : "Mark lesson complete";
+		courseCompleteMessage.hidden = !(course.lessons || []).every((courseLesson) => completed.has(courseLesson.id));
+		nextLink.classList.toggle("is-primary", done && Boolean(nextLesson));
 		renderOutline(course, completed, lesson.id);
 	}
 	refreshCompletion();
@@ -241,18 +270,23 @@ async function renderSelectedLesson(courses, progress, user) {
 		}
 		completed.add(lesson.id);
 		refreshCompletion();
-		status.textContent = "Your progress is saved.";
+		status.hidden = true;
+		status.textContent = "Lesson complete. Nice work.";
+		requestAnimationFrame(() => {
+			status.hidden = false;
+		});
 	});
 
-	setLessonLink(document.querySelector("#previous-lesson"), course, course.lessons[lessonIndex - 1], course.lessons[lessonIndex - 1] ? `← ${course.lessons[lessonIndex - 1].title}` : "");
-	const nextLesson = course.lessons[lessonIndex + 1];
-	const nextLink = document.querySelector("#next-lesson");
+	const previousLesson = course.lessons[lessonIndex - 1];
+	setLessonLink(document.querySelector("#previous-lesson"), course, previousLesson, previousLesson ? `← Previous: ${previousLesson.title}` : "");
 	if (nextLesson) {
-		setLessonLink(nextLink, course, nextLesson, `${nextLesson.title} →`);
+		setLessonLink(nextLink, course, nextLesson, `Next: ${nextLesson.title} →`);
+		nextLink.classList.remove("is-course-back");
 	} else {
 		nextLink.hidden = false;
 		nextLink.href = "student.html";
-		nextLink.textContent = "Back to courses →";
+		nextLink.textContent = "← All courses";
+		nextLink.classList.add("is-course-back");
 	}
 }
 
