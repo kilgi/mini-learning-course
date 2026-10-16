@@ -176,6 +176,29 @@ button:disabled:active {
 	overflow-wrap: anywhere;
 }
 
+.student-page .site-header {
+	width: min(calc(100% - 3rem), 44rem);
+	flex-wrap: nowrap;
+}
+
+.student-page .account-summary {
+	flex: 0 1 auto;
+}
+
+.student-page .account-email {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.lesson-page .site-title {
+	display: none;
+}
+
+.lesson-page .site-header {
+	border-bottom: 0;
+}
+
 .sign-out-button,
 .teacher-secondary-button,
 .teacher-remove-button,
@@ -532,9 +555,14 @@ button:disabled:active {
 }
 
 .catalog-heading {
-	width: min(calc(100% - 3rem), 72rem);
+	width: min(calc(100% - 3rem), 44rem);
 	min-width: 0;
 	margin-inline: auto;
+}
+
+.catalog-heading h1,
+.lesson-heading h1 {
+	font-size: clamp(1.75rem, 3vw, 2.25rem);
 }
 
 .catalog-heading h1 {
@@ -682,7 +710,7 @@ button:disabled:active {
 
 /* Student lesson reading */
 .dynamic-lesson {
-	width: min(calc(100% - 3rem), 48rem);
+	width: min(calc(100% - 3rem), 44rem);
 	min-width: 0;
 	margin-inline: auto;
 	padding-block: var(--space-8) var(--space-16);
@@ -693,6 +721,23 @@ button:disabled:active {
 	min-height: 2.75rem;
 	align-items: center;
 	margin-bottom: var(--space-6);
+}
+
+.lesson-page .site-header > .back-link {
+	flex: 0 1 auto;
+	white-space: nowrap;
+}
+
+.lesson-page .account-summary {
+	margin-left: auto;
+}
+
+.lesson-page .site-header + .catalog-layout {
+	padding-top: var(--space-4);
+}
+
+.lesson-page .dynamic-lesson {
+	padding-top: 0;
 }
 
 .back-link,
@@ -726,8 +771,8 @@ button:disabled:active {
 
 .lesson-content {
 	width: 100%;
-	max-width: 65ch;
-	margin-inline: auto;
+	max-width: none;
+	margin-inline: 0;
 	padding-block: var(--space-4) var(--space-6);
 }
 
@@ -736,8 +781,8 @@ button:disabled:active {
 }
 
 .lesson-content h2 {
-	margin-bottom: var(--space-3);
-	font-size: clamp(1.25rem, 2vw, 1.5rem);
+	margin-bottom: var(--space-2);
+	font-size: 1.375rem;
 }
 
 .lesson-content p,
@@ -748,7 +793,7 @@ button:disabled:active {
 }
 
 .lesson-content p {
-	margin-bottom: var(--space-3);
+	margin-bottom: var(--space-4);
 }
 
 .lesson-content ul {
@@ -789,6 +834,16 @@ button:disabled:active {
 	overflow-wrap: anywhere;
 }
 
+.dynamic-lesson > .complete-button {
+	width: auto;
+	min-height: 2.75rem;
+	padding: var(--space-3) var(--space-6);
+}
+
+.dynamic-lesson > .status-message {
+	margin-top: var(--space-2);
+}
+
 .complete-button[aria-pressed="true"],
 .complete-button:disabled {
 	color: var(--text);
@@ -799,16 +854,24 @@ button:disabled:active {
 .lesson-navigation {
 	display: flex;
 	min-width: 0;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--space-4);
+	align-items: flex-start;
+	flex-direction: column;
+	gap: var(--space-2);
 	margin-top: var(--space-6);
 	padding-top: var(--space-4);
 	border-top: 1px solid var(--line);
 }
 
+.lesson-navigation #next-lesson {
+	order: 1;
+}
+
+.lesson-navigation #previous-lesson {
+	order: 2;
+}
+
 .lesson-navigation a {
-	max-width: 50%;
+	max-width: 100%;
 	font-size: 0.9375rem;
 }
 
@@ -1313,6 +1376,15 @@ button:disabled:active {
 		padding-block: var(--space-3);
 	}
 
+	.student-page .site-header {
+		width: min(calc(100% - 3rem), 44rem);
+	}
+
+	.student-page .account-summary {
+		width: auto;
+		max-width: 68%;
+	}
+
 	.account-summary {
 		width: 100%;
 		justify-content: space-between;
@@ -1320,6 +1392,10 @@ button:disabled:active {
 
 	.account-email {
 		max-width: calc(100% - 7rem);
+	}
+
+	.student-page .account-email {
+		max-width: min(32vw, 12rem);
 	}
 
 	.public-header {
@@ -1422,6 +1498,10 @@ button:disabled:active {
 		width: calc(100% - 2rem);
 	}
 
+	.student-page .site-header {
+		width: calc(100% - 2rem);
+	}
+
 	.public-header {
 		gap: var(--space-2);
 	}
@@ -1506,6 +1586,12 @@ button:disabled:active {
 		flex-direction: column;
 	}
 
+}
+
+@media (max-width: 30rem) {
+	.dynamic-lesson > .complete-button {
+		width: 100%;
+	}
 }
 
 /* Reduced motion */

@@ -72,10 +72,16 @@ function renderCourse(course, index, progress, animateEntrance) {
 
 function renderLessonContent(lesson) {
 	const content = document.querySelector("#lesson-content");
+	const lessonTitle = document.querySelector("#lesson-title").textContent;
+	let firstHeading = true;
 	content.replaceChildren();
 	(lesson.sections || []).forEach((section) => {
 		const sectionElement = document.createElement("section");
-		appendText(sectionElement, "h2", section.heading || "");
+		const heading = section.heading || "";
+		if (!(firstHeading && heading === lessonTitle)) {
+			appendText(sectionElement, "h2", heading);
+		}
+		firstHeading = false;
 		(section.paragraphs || []).forEach((text) => appendText(sectionElement, "p", text));
 		if (section.points?.length) {
 			const list = document.createElement("ul");
@@ -137,11 +143,14 @@ async function renderSelectedLesson(courses, progress, user) {
 
 	catalog.hidden = true;
 	lessonView.hidden = false;
+	document.body.classList.add("lesson-page");
 	document.title = `${lesson.title} | ${course.title}`;
-	document.querySelector("#lesson-number").textContent = `${course.title.toUpperCase()} / LESSON ${String(lessonIndex + 1).padStart(2, "0")}`;
+	document.querySelector("#lesson-number").textContent = `LESSON ${String(lessonIndex + 1).padStart(2, "0")} / ${String(course.lessons.length).padStart(2, "0")}`;
 	document.querySelector("#lesson-title").textContent = lesson.title;
 	document.querySelector("#lesson-summary").textContent = lesson.summary || "";
-	document.querySelector("#lesson-back").href = "student.html";
+	const backLink = document.querySelector("#lesson-back");
+	backLink.href = "student.html";
+	document.querySelector(".site-header").prepend(backLink);
 	renderLessonContent(lesson);
 	await renderMaterials(lesson);
 
@@ -165,6 +174,7 @@ async function renderSelectedLesson(courses, progress, user) {
 			lesson_id: lesson.id
 		});
 		if (error && error.code !== "23505") {
+			console.error(error);
 			completeButton.disabled = false;
 			status.textContent = "Progress could not be saved. Check your connection and try again.";
 			return;
