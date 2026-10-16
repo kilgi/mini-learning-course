@@ -2,6 +2,8 @@ const catalog = document.querySelector("#catalog-view");
 const courseList = document.querySelector("#course-list");
 const catalogStatus = document.querySelector("#catalog-status");
 const lessonView = document.querySelector("#lesson-view");
+const continueBanner = document.querySelector("#continue-banner");
+const continueCourseLink = document.querySelector("#continue-course-link");
 const query = new URLSearchParams(window.location.search);
 let hasRenderedCatalog = false;
 
@@ -59,11 +61,12 @@ function renderCourse(course, index, progress, animateEntrance) {
 	footer.className = "course-card-footer";
 	appendText(footer, "span", `${total} ${total === 1 ? "lesson" : "lessons"}`, "course-lesson-count");
 	const next = (course.lessons || []).find((lesson) => !completed.has(lesson.id));
-	if (next) {
+	const actionLesson = next || course.lessons?.[0];
+	if (actionLesson) {
 		const continueLink = document.createElement("a");
 		continueLink.className = "course-link";
-		continueLink.href = lessonUrl(course.id, next.id);
-		continueLink.textContent = "Continue learning";
+		continueLink.href = lessonUrl(course.id, actionLesson.id);
+		continueLink.textContent = next ? (completed.size ? "Continue" : "Start course") : "Review course";
 		footer.append(continueLink);
 	}
 	card.append(footer);
@@ -131,6 +134,59 @@ function setLessonLink(link, course, lesson, label) {
 	link.hidden = !lesson;
 }
 
+function renderOutlineList(list, course, completed, currentLessonId) {
+	list.replaceChildren();
+	(course.lessons || []).forEach((lesson, index) => {
+		const row = document.createElement("li");
+		const link = document.createElement("a");
+		link.href = lessonUrl(course.id, lesson.id);
+		if (lesson.id === currentLessonId) {
+			link.setAttribute("aria-current", "page");
+			row.classList.add("is-current");
+		}
+		appendText(link, "span", String(index + 1).padStart(2, "0"), "outline-lesson-number");
+		appendText(link, "span", lesson.title || "Untitled lesson", "outline-lesson-name");
+		const label = completed.has(lesson.id) ? "Completed ✓" : lesson.id === currentLessonId ? "Current" : "Not started";
+		appendText(link, "span", label, "outline-lesson-status");
+		row.append(link);
+		list.append(row);
+	});
+}
+
+function renderOutline(course, completed, currentLessonId) {
+	const total = course.lessons?.length || 0;
+	const completedCount = (course.lessons || []).filter((lesson) => completed.has(lesson.id)).length;
+	const progressText = `${completedCount} of ${total} complete`;
+	const title = course.title || "Untitled course";
+	document.querySelector("#outline-course-title").textContent = title;
+	document.querySelector("#compact-outline-course-title").textContent = title;
+	document.querySelector("#outline-progress-label").textContent = progressText;
+	document.querySelector("#compact-outline-progress-label").textContent = progressText;
+	document.querySelector("#outline-disclosure-title").textContent = `Course outline (${progressText})`;
+	for (const progress of [document.querySelector("#outline-progress"), document.querySelector("#compact-outline-progress")]) {
+		progress.max = Math.max(total, 1);
+		progress.value = completedCount;
+		progress.setAttribute("aria-label", `${title} progress`);
+	}
+	renderOutlineList(document.querySelector("#outline-lesson-list"), course, completed, currentLessonId);
+	renderOutlineList(document.querySelector("#compact-outline-lesson-list"), course, completed, currentLessonId);
+}
+
+function renderContinueBanner(courses, progress) {
+	for (const course of courses) {
+		const lessonIds = new Set((course.lessons || []).map((lesson) => lesson.id));
+		const completed = new Set(progress.filter((row) => row.course_id === course.id && lessonIds.has(row.lesson_id)).map((row) => row.lesson_id));
+		const next = (course.lessons || []).find((lesson) => !completed.has(lesson.id));
+		if (completed.size && next) {
+			continueCourseLink.href = lessonUrl(course.id, next.id);
+			continueCourseLink.textContent = `Continue where you left off: ${course.title || "Untitled course"} — Lesson ${(course.lessons || []).indexOf(next) + 1}`;
+			continueBanner.hidden = false;
+			return;
+		}
+	}
+	continueBanner.hidden = true;
+}
+
 async function renderSelectedLesson(courses, progress, user) {
 	const course = courses.find((item) => item.id === query.get("course"));
 	const lessonIndex = course?.lessons?.findIndex((item) => item.id === query.get("lesson")) ?? -1;
@@ -150,7 +206,10 @@ async function renderSelectedLesson(courses, progress, user) {
 	document.querySelector("#lesson-summary").textContent = lesson.summary || "";
 	const backLink = document.querySelector("#lesson-back");
 	backLink.href = "student.html";
-	document.querySelector(".site-header").prepend(backLink);
+	const courseBreadcrumb = document.querySelector("#course-breadcrumb");
+	courseBreadcrumb.href = lessonUrl(course.id, course.lessons[0].id);
+	courseBreadcrumb.textContent = course.title || "Untitled course";
+	document.querySelector("#lesson-breadcrumb-current").textContent = `Lesson ${lessonIndex + 1}`;
 	renderLessonContent(lesson);
 	await renderMaterials(lesson);
 
@@ -162,6 +221,7 @@ async function renderSelectedLesson(courses, progress, user) {
 		completeButton.disabled = done;
 		completeButton.setAttribute("aria-pressed", String(done));
 		completeButton.textContent = done ? "Lesson completed" : "Mark lesson complete";
+		renderOutline(course, completed, lesson.id);
 	}
 	refreshCompletion();
 	completeButton.addEventListener("click", async () => {
@@ -227,6 +287,7 @@ async function initializeStudentPage() {
 	}
 	if (!query.has("lesson")) {
 		if (courses.length) {
+			renderContinueBanner(courses, progress);
 			const animateEntrance = !hasRenderedCatalog;
 			courseList.replaceChildren(...courses.map((course, index) => renderCourse(course, index, progress, animateEntrance)));
 			hasRenderedCatalog = true;

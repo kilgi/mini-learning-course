@@ -26,26 +26,60 @@
         <p class="eyebrow">LEARNING LIBRARY</p>
         <h1 id="catalog-title">Find a course to follow.</h1>
         <p class="catalog-subtitle">Every course is created by a teacher. Your lesson progress stays with your account.</p>
+        <aside class="continue-banner" id="continue-banner" hidden aria-label="Continue learning">
+          <p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p>
+          <a id="continue-course-link" href="student.html"></a>
+        </aside>
         <div class="course-grid" id="course-list" aria-live="polite"></div>
       </section>
       <section class="dynamic-lesson" id="lesson-view" hidden aria-labelledby="lesson-title">
-        <a class="back-link" id="lesson-back" href="student.html"><span aria-hidden="true">&#8592;</span> All courses</a>
-        <header class="lesson-heading">
-          <p class="eyebrow" id="lesson-number"></p>
-          <h1 id="lesson-title"></h1>
-          <p class="lesson-summary" id="lesson-summary"></p>
-        </header>
-        <article class="lesson-content" id="lesson-content"></article>
-        <section class="lesson-materials" id="lesson-materials" hidden aria-labelledby="materials-title">
-          <h2 id="materials-title">Materials and links</h2>
-          <ul id="material-list"></ul>
-        </section>
-        <button class="complete-button" id="complete-lesson" type="button" aria-pressed="false">Mark lesson complete</button>
-        <p class="status-message" id="lesson-status" role="status" hidden></p>
-        <nav class="lesson-navigation" aria-label="Lesson navigation">
-          <a id="previous-lesson" href="#" hidden></a>
-          <a id="next-lesson" href="#"></a>
+        <nav class="lesson-breadcrumb" aria-label="Breadcrumb">
+          <a id="lesson-back" href="student.html">Courses</a>
+          <span aria-hidden="true">/</span>
+          <a id="course-breadcrumb" href="student.html"></a>
+          <span aria-hidden="true">/</span>
+          <span id="lesson-breadcrumb-current"></span>
         </nav>
+        <div class="lesson-layout">
+          <aside class="course-outline" aria-labelledby="course-outline-title">
+            <h2 id="course-outline-title">Course outline</h2>
+            <p class="outline-course-title" id="outline-course-title"></p>
+            <p class="outline-progress-label" id="outline-progress-label"></p>
+            <progress class="course-progress-track" id="outline-progress" max="1" value="0"></progress>
+            <ol class="outline-lesson-list" id="outline-lesson-list"></ol>
+          </aside>
+          <details class="course-outline-disclosure">
+            <summary id="outline-disclosure-title"></summary>
+            <div class="course-outline course-outline-compact">
+              <p class="outline-course-title" id="compact-outline-course-title"></p>
+              <p class="outline-progress-label" id="compact-outline-progress-label"></p>
+              <progress class="course-progress-track" id="compact-outline-progress" max="1" value="0"></progress>
+              <ol class="outline-lesson-list" id="compact-outline-lesson-list"></ol>
+            </div>
+          </details>
+          <article class="lesson-card">
+            <header class="lesson-heading">
+              <p class="eyebrow" id="lesson-number"></p>
+              <h1 id="lesson-title"></h1>
+              <p class="lesson-summary" id="lesson-summary"></p>
+            </header>
+            <article class="lesson-content" id="lesson-content"></article>
+            <section class="lesson-materials" id="lesson-materials" hidden aria-labelledby="materials-title">
+              <h2 id="materials-title">Materials and links</h2>
+              <ul id="material-list"></ul>
+            </section>
+            <div class="lesson-actions">
+              <div class="completion-action">
+                <button class="complete-button" id="complete-lesson" type="button" aria-pressed="false">Mark lesson complete</button>
+                <p class="status-message" id="lesson-status" role="status" hidden></p>
+              </div>
+              <nav class="lesson-navigation" aria-label="Lesson navigation">
+                <a id="previous-lesson" href="#" hidden></a>
+                <a id="next-lesson" href="#"></a>
+              </nav>
+            </div>
+          </article>
+        </div>
       </section>
       <p class="status-message" id="catalog-status" role="status" aria-live="polite" hidden></p>
     </main>
